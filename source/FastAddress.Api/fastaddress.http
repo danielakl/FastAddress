@@ -1,0 +1,6 @@
+@source_HostAddress = http://localhost:5258
+
+POST {{source_HostAddress}}/addresses/search
+Accept: application/json
+
+###

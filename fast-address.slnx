@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".dockerignore" />
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="Directory.Packages.props" />
+    <File Path="docker-compose.yaml" />
+    <File Path="dotnet-tools.json" />
+    <File Path="fast-address.slnx" />
+    <File Path="global.json" />
+    <File Path="nuget.config" />
+  </Folder>
+  <Project Path="source/FastAddress.Api/FastAddress.Api.csproj" />
+  <Project Path="source/FastAddress.Sdk/FastAddress.Sdk.csproj" />
+  <Project Path="source/FastAddress.Web/FastAddress.Web.csproj" />
+</Solution>
