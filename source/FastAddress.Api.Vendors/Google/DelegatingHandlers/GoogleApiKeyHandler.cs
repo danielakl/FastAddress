@@ -1,8 +1,8 @@
-using FastAddress.Api.Contracts.Options;
+using FastAddress.Api.Vendors.Options;
 
 using Microsoft.Extensions.Options;
 
-namespace FastAddress.Api.Contracts.Google.DelegatingHandlers;
+namespace FastAddress.Api.Vendors.Google.DelegatingHandlers;
 
 /// <summary>
 /// Adds Google's API key header to every outgoing Google API request.

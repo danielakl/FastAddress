@@ -1,4 +1,4 @@
-namespace FastAddress.Api.Contracts.Options;
+namespace FastAddress.Api.Vendors.Options;
 
 /// <summary>Options for Google APIs setup.</summary>
 public sealed record GoogleApisOptions

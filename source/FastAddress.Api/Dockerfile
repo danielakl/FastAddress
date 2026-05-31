@@ -8,6 +8,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0.300-alpine3.23 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["source/FastAddress.Api/FastAddress.Api.csproj", "source/FastAddress.Api/"]
+COPY ["source/FastAddress.Api.Vendors/FastAddress.Api.Vendors.csproj", "source/FastAddress.Api.Vendors/"]
 COPY ["source/FastAddress.Sdk/FastAddress.Sdk.csproj", "source/FastAddress.Sdk/"]
 COPY ["Directory.Build.props", "Directory.Build.props"]
 COPY ["Directory.Build.targets", "Directory.Build.targets"]
