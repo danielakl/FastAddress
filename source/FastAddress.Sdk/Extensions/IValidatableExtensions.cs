@@ -1,5 +1,6 @@
 using FastAddress.Sdk.Validation;
 
+using FluentValidation;
 using FluentValidation.Results;
 
 namespace FastAddress.Sdk.Extensions;
@@ -21,7 +22,7 @@ public static class IValidatableExtensions
         where TData : IValidatable<TData>
     {
         TData cleanedData = data.WithCleaning();
-        TData.GetValidator().Validate(cleanedData);
+        TData.GetValidator().ValidateAndThrow(cleanedData);
         return cleanedData;
     }
 
