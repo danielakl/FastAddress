@@ -7,14 +7,19 @@
     <File Path="Directory.Build.props" />
     <File Path="Directory.Build.targets" />
     <File Path="Directory.Packages.props" />
+    <File Path="coverlet.runsettings" />
     <File Path="docker-compose.yaml" />
     <File Path="dotnet-tools.json" />
     <File Path="fast-address.slnx" />
     <File Path="global.json" />
     <File Path="nuget.config" />
   </Folder>
+  <Project Path="source\FastAddress.Api.Tests\FastAddress.Api.Tests.csproj" />
   <Project Path="source\FastAddress.Api.Vendors\FastAddress.Api.Vendors.csproj" />
   <Project Path="source\FastAddress.Api\FastAddress.Api.csproj" />
+  <Project Path="source\FastAddress.Sdk.Tests\FastAddress.Sdk.Tests.csproj" />
   <Project Path="source\FastAddress.Sdk\FastAddress.Sdk.csproj" />
+  <Project Path="source\FastAddress.TestUtilities\FastAddress.TestUtilities.csproj" />
+  <Project Path="source\FastAddress.Web.Tests\FastAddress.Web.Tests.csproj" />
   <Project Path="source\FastAddress.Web\FastAddress.Web.csproj" />
 </Solution>

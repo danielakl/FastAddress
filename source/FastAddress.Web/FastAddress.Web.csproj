@@ -7,7 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../FastAddress.Sdk/FastAddress.Sdk.csproj" />
+    <ProjectReference Include="..\FastAddress.Sdk\FastAddress.Sdk.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="FastAddress.Web.Tests" />
   </ItemGroup>
 
   <ItemGroup>
