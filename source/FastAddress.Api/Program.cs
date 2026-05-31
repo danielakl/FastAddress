@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 
 using FastAddress.Api.Database;
 using FastAddress.Api.Options;
+using FastAddress.Api.Vendors.Extensions;
 using FastAddress.Sdk.Helpers;
 
 using Microsoft.EntityFrameworkCore;
@@ -30,7 +31,7 @@ var configuration = builder.Configuration
     .Build();
 
 services.Configure<DatabaseOptions>(configuration.GetSection(DatabaseOptions.ConfigKey));
-services.Configure<GoogleApisOptions>(configuration.GetSection(GoogleApisOptions.ConfigKey));
+services.AddGoogleApiContract(configuration);
 
 // Add services.
 services.AddSingleton<IClock>(SystemClock.Instance);

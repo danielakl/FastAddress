@@ -2,6 +2,9 @@ using System.Runtime.CompilerServices;
 
 using FastAddress.Api.Database;
 using FastAddress.Api.Database.Entities;
+using FastAddress.Api.Mapping;
+using FastAddress.Api.Vendors.Contracts;
+using FastAddress.Api.Vendors.Models;
 using FastAddress.Sdk.Dto;
 using FastAddress.Sdk.Extensions;
 
@@ -18,15 +21,25 @@ namespace FastAddress.Api.Controllers;
 public sealed class AddressController : ControllerBase
 {
     [HttpPost("search")]
-    public async Task<SearchAddressDto> SearchAddressesAsync(
+    public async IAsyncEnumerable<AddressDto> SearchAddressesAsync(
         [FromBody] SearchAddressDto searchDto,
-        CancellationToken ct = default)
+        [FromServices] IGooglePlacesService googlePlacesService,
+        [EnumeratorCancellation] CancellationToken ct = default)
     {
         searchDto = searchDto.CleanAndValidateOrThrow();
-        
-        return searchDto;
+
+        var searchResult = googlePlacesService.SearchAsync(new AddressSearchRequest
+        {
+            Query = searchDto.Address!,
+            Limit = searchDto.Limit,
+        }, ct);
+
+        await foreach (var result in searchResult)
+        {
+            yield return DtoMapper.ToAddressDto(result);
+        }
     }
-    
+
     [HttpGet]
     public ConfiguredCancelableAsyncEnumerable<StreetAddress> TestGetAllAddresses(
         [FromServices] FastAddressDbContext context,
