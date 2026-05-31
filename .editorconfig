@@ -383,3 +383,9 @@ dotnet_naming_style.s_camelcase.required_suffix =
 dotnet_naming_style.s_camelcase.word_separator = 
 dotnet_naming_style.s_camelcase.capitalization = camel_case
 
+# Test projects: the test naming convention uses underscores (MethodName_Scenario_Outcome)
+# and [Theory] cases rely on inline constant arrays.
+[**/*.{Tests,IntegrationTests}/**.cs]
+dotnet_diagnostic.CA1707.severity = none
+dotnet_diagnostic.CA1861.severity = none
+
