@@ -14,6 +14,7 @@
     <File Path="nuget.config" />
   </Folder>
   <Project Path="source/FastAddress.Api/FastAddress.Api.csproj" />
+  <Project Path="source/FastAddress.Api.Contracts/FastAddress.Api.Contracts.csproj" />
   <Project Path="source/FastAddress.Sdk/FastAddress.Sdk.csproj" />
   <Project Path="source/FastAddress.Web/FastAddress.Web.csproj" />
 </Solution>
