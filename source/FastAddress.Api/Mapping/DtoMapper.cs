@@ -1,4 +1,6 @@
-using FastAddress.Api.Vendors.Models;
+using System.Diagnostics.CodeAnalysis;
+
+using FastAddress.Api.Models;
 using FastAddress.Sdk.Dto;
 
 namespace FastAddress.Api.Mapping;
@@ -9,15 +11,21 @@ namespace FastAddress.Api.Mapping;
 internal static class DtoMapper
 {
     /// <summary>
-    /// Project an <see cref="AddressSearchResult"/> onto the <see cref="AddressDto"/>.
+    /// Project a <see cref="StreetAddressSearchEntry"/> onto the <see cref="StreetAddressDto"/>.
     /// </summary>
-    public static AddressDto ToAddressDto(AddressSearchResult result)
+    [return:NotNullIfNotNull(nameof(entry))]
+    public static StreetAddressDto? ToStreetAddressDto(StreetAddressSearchEntry? entry)
     {
-        return new AddressDto
+        if (entry is null)
         {
-            StreetAddress = result.ShortFormattedAddress,
-            Point = result.Location,
-            Score = 1d / (result.OrderScore + 1), // TODO: Look at score calculation
+            return null;
+        }
+
+        return new StreetAddressDto
+        {
+            StreetAddress = entry.StreetLine,
+            Location = entry.Location,
+            Score = entry.Score,
         };
     }
 }

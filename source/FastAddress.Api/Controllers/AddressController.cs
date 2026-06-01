@@ -3,8 +3,8 @@ using System.Runtime.CompilerServices;
 using FastAddress.Api.Database;
 using FastAddress.Api.Database.Entities;
 using FastAddress.Api.Mapping;
-using FastAddress.Api.Vendors.Contracts;
-using FastAddress.Api.Vendors.Models;
+using FastAddress.Api.Models;
+using FastAddress.Api.Services;
 using FastAddress.Sdk.Dto;
 using FastAddress.Sdk.Extensions;
 
@@ -21,22 +21,23 @@ namespace FastAddress.Api.Controllers;
 public sealed class AddressController : ControllerBase
 {
     [HttpPost("search")]
-    public async IAsyncEnumerable<AddressDto> SearchAddressesAsync(
-        [FromBody] SearchAddressDto searchDto,
-        [FromServices] IGooglePlacesService googlePlacesService,
+    public async IAsyncEnumerable<StreetAddressDto> SearchAddressesAsync(
+        [FromBody] SearchStreetAddressDto searchDto,
+        [FromServices] IStreetAddressSearchService searchService,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
         searchDto = searchDto.CleanAndValidateOrThrow();
 
-        var searchResult = googlePlacesService.SearchAsync(new AddressSearchRequest
+        var query = new SearchStreetAddressQuery
         {
-            Query = searchDto.Address!,
-            Limit = searchDto.Limit,
-        }, ct);
+            Text = searchDto.Address!,
+            Limit = searchDto.Limit!.Value,
+            LocationBias = searchDto.LocationBias,
+        };
 
-        await foreach (var result in searchResult)
+        await foreach (var entry in searchService.SearchAsync(query, ct))
         {
-            yield return DtoMapper.ToAddressDto(result);
+            yield return DtoMapper.ToStreetAddressDto(entry);
         }
     }
 
