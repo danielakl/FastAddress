@@ -2,7 +2,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 using FastAddress.Api.Database;
+using FastAddress.Api.Database.Repositories;
 using FastAddress.Api.Options;
+using FastAddress.Api.Services;
 using FastAddress.Api.Vendors.Extensions;
 using FastAddress.Sdk.Helpers;
 
@@ -31,10 +33,13 @@ var configuration = builder.Configuration
     .Build();
 
 services.Configure<DatabaseOptions>(configuration.GetSection(DatabaseOptions.ConfigKey));
+services.Configure<AddressSearchOptions>(configuration.GetSection(AddressSearchOptions.ConfigKey));
 services.AddGoogleApiContract(configuration);
 
 // Add services.
 services.AddSingleton<IClock>(SystemClock.Instance);
+services.AddScoped<IStreetAddressRepository, StreetAddressRepository>();
+services.AddScoped<IStreetAddressSearchService, StreetAddressSearchService>();
 
 services.AddDbContext<FastAddressDbContext>((sp, opts) =>
 {
