@@ -40,12 +40,24 @@ public sealed class FastAddressDbContext : DbContext
 
         base.OnModelCreating(modelBuilder);
         modelBuilder.HasDefaultSchema(SchemaName);
+        modelBuilder.HasTrigramExtension();
 
         var streetAddress = modelBuilder.Entity<StreetAddress>();
         streetAddress.HasKey(e => e.Id);
         streetAddress.HasDefaultTimestamps();
-        streetAddress.Property(e => e.Address).HasMaxLength(250);
+
+        streetAddress.Property(e => e.Country).HasMaxLength(100);
         streetAddress.Property(e => e.GooglePlaceId).HasMaxLength(500);
+        streetAddress.Property(e => e.Location).HasGeographyColumnType();
+        streetAddress.Property(e => e.PostalCode).HasMaxLength(20);
+        streetAddress.Property(e => e.PostalTown).HasMaxLength(100);
+        streetAddress.Property(e => e.SearchText).HasMaxLength(250);
+        streetAddress.Property(e => e.StreetLine).HasMaxLength(250);
+
+        streetAddress.HasIndex(e => e.GooglePlaceId).IsUnique();
+        streetAddress.HasIndex(e => e.Location).HasSpatialIndex();
+        streetAddress.HasIndex(e => e.SearchText).HasTrigramIndex();
+
         streetAddress.ToTable("street_addresses");
     }
 
