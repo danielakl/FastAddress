@@ -1,7 +1,6 @@
 using FastAddress.Api.Controllers;
-using FastAddress.Api.Vendors.Contracts;
-using FastAddress.Api.Vendors.Google.Places.Models;
-using FastAddress.Api.Vendors.Models;
+using FastAddress.Api.Models;
+using FastAddress.Api.Services;
 using FastAddress.Sdk.Dto;
 using FastAddress.TestUtilities;
 
@@ -13,33 +12,34 @@ namespace FastAddress.Api.Tests.Controllers;
 
 public sealed class AddressControllerTests
 {
-    private readonly IGooglePlacesService googlePlaces = Substitute.For<IGooglePlacesService>();
+    private readonly IStreetAddressSearchService searchService = Substitute.For<IStreetAddressSearchService>();
 
-    private static AddressSearchResult SearchResult(int orderScore, string address) =>
+    private static StreetAddressSearchEntry Entry(string streetLine) =>
         new()
         {
-            PlaceId = $"place-{orderScore}",
-            OrderScore = orderScore,
-            ShortFormattedAddress = address,
+            PlaceId = $"place-{streetLine}",
+            StreetLine = streetLine,
             Location = GeoTestData.Point(10.0, 63.0),
-            Types = ["street_address"],
-            AddressComponents = Array.Empty<AddressComponent>(),
+            Score = 1d,
+            IsCacheHit = true,
         };
 
-    private void GivenSearchReturns(params AddressSearchResult[] results) =>
-        googlePlaces.SearchAsync(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>())
-            .Returns(results.AsAsyncEnumerable());
+    private static SearchStreetAddressDto SearchDto(string? address = "Lade alle 77", int? limit = 5) =>
+        new() { Address = address, Limit = limit, LocationBias = GeoTestData.Point(10.0, 63.0) };
+
+    private void GivenSearchReturns(params StreetAddressSearchEntry[] entries) =>
+        searchService.SearchAsync(Arg.Any<SearchStreetAddressQuery>(), Arg.Any<CancellationToken>())
+            .Returns(entries.AsAsyncEnumerable());
 
     [Fact]
-    public async Task SearchAddressesAsync_ValidRequest_ReturnsMappedAddressDtos()
+    public async Task SearchAddressesAsync_ValidRequest_ReturnsMappedStreetAddressDtos()
     {
         // Arrange
-        GivenSearchReturns(SearchResult(0, "Addr 0"), SearchResult(1, "Addr 1"));
+        GivenSearchReturns(Entry("Addr 0"), Entry("Addr 1"));
         var controller = new AddressController();
-        var searchDto = new SearchAddressDto { Center = null, Address = "Lade alle 77", Radius = 1000 };
 
         // Act
-        var results = await controller.SearchAddressesAsync(searchDto, googlePlaces).CollectAsync();
+        var results = await controller.SearchAddressesAsync(SearchDto(), searchService).CollectAsync();
 
         // Assert
         Assert.Equal(new[] { "Addr 0", "Addr 1" }, results.Select(r => r.StreetAddress));
@@ -50,27 +50,26 @@ public sealed class AddressControllerTests
     {
         // Arrange
         var controller = new AddressController();
-        var searchDto = new SearchAddressDto { Center = null, Address = "", Radius = null };
 
         // Act + Assert
         await Assert.ThrowsAsync<ValidationException>(async () =>
-            await controller.SearchAddressesAsync(searchDto, googlePlaces).CollectAsync());
+            await controller.SearchAddressesAsync(SearchDto(address: ""), searchService).CollectAsync());
     }
 
     [Fact]
-    public async Task SearchAddressesAsync_ValidRequest_PassesCleanedQueryAndLimitToService()
+    public async Task SearchAddressesAsync_ValidRequest_PassesCleanedQueryToService()
     {
         // Arrange
         GivenSearchReturns();
         var controller = new AddressController();
-        var searchDto = new SearchAddressDto { Center = null, Address = "  Lade alle 77  ", Radius = 1000, Limit = 5 };
+        var searchDto = SearchDto(address: "  Lade alle 77  ", limit: 5);
 
         // Act
-        await controller.SearchAddressesAsync(searchDto, googlePlaces).CollectAsync();
+        await controller.SearchAddressesAsync(searchDto, searchService).CollectAsync();
 
         // Assert
-        googlePlaces.Received(1).SearchAsync(
-            Arg.Is<AddressSearchRequest>(r => r.Query == "Lade alle 77" && r.Limit == 5),
+        searchService.Received(1).SearchAsync(
+            Arg.Is<SearchStreetAddressQuery>(q => q.Text == "Lade alle 77" && q.Limit == 5 && q.LocationBias != null),
             Arg.Any<CancellationToken>());
     }
 }

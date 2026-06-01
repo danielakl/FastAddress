@@ -1,5 +1,6 @@
 using FastAddress.Sdk.Dto;
 using FastAddress.Sdk.Extensions;
+using FastAddress.TestUtilities;
 
 using FluentValidation;
 using FluentValidation.Results;
@@ -9,22 +10,22 @@ namespace FastAddress.Sdk.Tests.Extensions;
 
 public sealed class IValidatableExtensionsTests
 {
-    private static SearchAddressDto ValidDto() =>
-        new() { Center = null, Address = "Lade alle 77", Radius = 1000 };
+    private static SearchStreetAddressDto ValidDto() =>
+        new() { Address = "Lade alle 77", Limit = 5, LocationBias = GeoTestData.Point(10.0, 63.0) };
 
     [Fact]
-    public void CleanAndValidate_InvalidDto_HasValidationErrorsForAddressAndRadius()
+    public void CleanAndValidate_InvalidDto_HasValidationErrorsForAddressAndLocationBias()
     {
         // Arrange
-        var dto = new SearchAddressDto { Center = null, Address = null, Radius = null };
+        var dto = new SearchStreetAddressDto { Address = null, Limit = null, LocationBias = null };
 
         // Act
         ValidationResult validationResult = dto.CleanAndValidate();
 
         // Assert
-        var result = new TestValidationResult<SearchAddressDto>(validationResult);
+        var result = new TestValidationResult<SearchStreetAddressDto>(validationResult);
         result.ShouldHaveValidationErrorFor(dto => dto.Address);
-        result.ShouldHaveValidationErrorFor(dto => dto.Radius);
+        result.ShouldHaveValidationErrorFor(dto => dto.LocationBias);
     }
 
     [Fact]
@@ -37,14 +38,14 @@ public sealed class IValidatableExtensionsTests
         ValidationResult validationResult = dto.CleanAndValidate();
 
         // Assert
-        new TestValidationResult<SearchAddressDto>(validationResult).ShouldNotHaveAnyValidationErrors();
+        new TestValidationResult<SearchStreetAddressDto>(validationResult).ShouldNotHaveAnyValidationErrors();
     }
 
     [Fact]
     public void CleanAndValidateOrThrow_InvalidDto_ThrowsValidationException()
     {
         // Arrange
-        var dto = new SearchAddressDto { Center = null, Address = "", Radius = null };
+        var dto = new SearchStreetAddressDto { Address = "", Limit = null, LocationBias = null };
 
         // Act + Assert
         Assert.Throws<ValidationException>(() => dto.CleanAndValidateOrThrow());
