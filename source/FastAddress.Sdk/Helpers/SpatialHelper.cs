@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 using NetTopologySuite.Geometries;
 
 namespace FastAddress.Sdk.Helpers;
@@ -27,4 +29,34 @@ public static class SpatialHelper
     /// Geometry factory instance using SRID 4326 and a precision model for coordinate precision down to ~1m.
     /// </summary>
     public static readonly GeometryFactory GeometryFactoryInstance = new(PrecisionModelInstance, srid: Srid);
+
+    /// <summary>
+    /// Produce a new <see cref="Point"/> rounded to the shared <see cref="PrecisionModelInstance"/>.
+    /// The input is not mutated.
+    /// </summary>
+    /// <param name="point">The point to round.</param>
+    /// <returns>A new precise point.</returns>
+    [return: NotNullIfNotNull(nameof(point))]
+    public static Point? MakePrecise(Point? point)
+    {
+        if (point is null || point.IsEmpty)
+        {
+            return point;
+        }
+
+        var coordinate = point.Coordinate.Copy();
+        PrecisionModelInstance.MakePrecise(coordinate);
+        return GeometryFactoryInstance.CreatePoint(coordinate);
+    }
+
+    /// <summary>
+    /// Determine whether a point is non-null, non-empty and has finite ordinate values
+    /// (via <see cref="Coordinate.IsValid"/>). Note: this does not enforce WGS84 range bounds.
+    /// </summary>
+    /// <param name="point">The point to validate.</param>
+    /// <returns><see langword="true"/> when the point is usable as a spatial input.</returns>
+    public static bool IsValidPoint([NotNullWhen(true)] Point? point)
+    {
+        return point is not null && !point.IsEmpty && point.Coordinate.IsValid;
+    }
 }
