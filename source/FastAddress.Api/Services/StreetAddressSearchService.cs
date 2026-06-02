@@ -106,7 +106,7 @@ internal sealed partial class StreetAddressSearchService(
         result.Types.Any(PlaceTypes.IsStreetAddressType);
 
     private static AddressSearchRequest ToVendorRequest(SearchStreetAddressQuery query) =>
-        new() { Query = query.Text, Limit = query.Limit };
+        new() { Query = query.Text, Limit = query.Limit, LocationBias = query.LocationBias };
 
     private static StreetAddressSearchEntry ToCacheEntry(StreetAddressMatch match) =>
         new()

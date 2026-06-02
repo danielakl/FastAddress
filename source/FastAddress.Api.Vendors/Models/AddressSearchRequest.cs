@@ -1,3 +1,5 @@
+using NetTopologySuite.Geometries;
+
 namespace FastAddress.Api.Vendors.Models;
 
 /// <summary>
@@ -14,4 +16,9 @@ public sealed record AddressSearchRequest
     /// Maximum number of results.
     /// </summary>
     public required int? Limit { get; init; }
+
+    /// <summary>
+    /// Optional point used to bias ranking toward nearby results.
+    /// </summary>
+    public Point? LocationBias { get; init; }
 }

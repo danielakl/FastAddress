@@ -166,7 +166,47 @@ public sealed class GooglePlacesServiceTests
     }
 
     [Fact]
-    public async Task SearchAsync_AutocompleteReturnsNoPredictions_YieldsNothing()
+    public async Task Search_WithLocationBias_SendsCircleAroundPointToAutocomplete()
+    {
+        // Arrange
+        GivenAutocomplete(PlacesBuilders.Prediction("p0"));
+        GivenPlace(PlacesBuilders.Place("p0"));
+        var bias = GeoTestData.Point(10.4, 63.4);
+        var service = CreateService();
+
+        // Act
+        await service.Search(new AddressSearchRequest { Query = "lade", Limit = null, LocationBias = bias })
+            .CollectAsync();
+
+        // Assert — point Y/X map to latitude/longitude, fixed 25km radius.
+        await places.Received(1).AutocompleteAsync(
+            Arg.Is<AutocompleteRequest>(r => r.LocationBias != null
+                && r.LocationBias.Circle.Center.Latitude == 63.4
+                && r.LocationBias.Circle.Center.Longitude == 10.4
+                && r.LocationBias.Circle.Radius == 25_000),
+            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Search_WithoutLocationBias_SendsNoLocationBias()
+    {
+        // Arrange
+        GivenAutocomplete(PlacesBuilders.Prediction("p0"));
+        GivenPlace(PlacesBuilders.Place("p0"));
+        var service = CreateService();
+
+        // Act
+        await service.Search(new AddressSearchRequest { Query = "lade", Limit = null })
+            .CollectAsync();
+
+        // Assert
+        await places.Received(1).AutocompleteAsync(
+            Arg.Is<AutocompleteRequest>(r => r.LocationBias == null),
+            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Search_AutocompleteReturnsNoPredictions_YieldsNothing()
     {
         // Arrange
         GivenAutocomplete();

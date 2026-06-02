@@ -16,6 +16,7 @@ internal sealed class GooglePlacesService(IPlacesApi places) : IGooglePlacesServ
 {
     private const string LanguageCode = "en-US";
     private const string RegionCode = "no";
+    private const double LocationBiasRadiusMeters = 25_000;
     private const string PlaceAutoCompleteFields = "suggestions.placePrediction.placeId,suggestions.placePrediction.types,suggestions.placePrediction.text.text";
     private const string PlaceDetailsFields = "id,movedPlaceId,addressComponents,shortFormattedAddress,location,types";
 
@@ -36,7 +37,8 @@ internal sealed class GooglePlacesService(IPlacesApi places) : IGooglePlacesServ
             {
                 IncludedPrimaryTypes = [..PlaceTypes.StreetAddressTypes],
                 IncludedRegionCodes = [RegionCode],
-                Input = request.Query
+                Input = request.Query,
+                LocationBias = ToLocationBias(request.LocationBias),
             },
             PlaceAutoCompleteFields,
             LanguageCode,
@@ -74,6 +76,20 @@ internal sealed class GooglePlacesService(IPlacesApi places) : IGooglePlacesServ
             }
         }
     }
+
+    /// <summary>Wrap a bias point in a fixed-radius circle; returns <see langword="null"/> when absent so
+    /// Google fallsback to its default IP-based bias.</summary>
+    private static LocationBias? ToLocationBias(Point? point) =>
+        point is null
+            ? null
+            : new LocationBias
+            {
+                Circle = new Circle
+                {
+                    Center = new LatLng { Latitude = point.Y, Longitude = point.X },
+                    Radius = LocationBiasRadiusMeters,
+                },
+            };
 
     private async Task<AddressSearchResult?> FetchAsync(string placeId, int orderScore, CancellationToken ct)
     {

@@ -22,7 +22,7 @@ internal sealed class StreetAddressRepository(
     private const int CandidateMultiplier = 4;
 
     /// <inheritdoc/>
-    public async IAsyncEnumerable<StreetAddressMatch> SearchAsync(
+    public async IAsyncEnumerable<StreetAddressMatch> Search(
         string text,
         Point? locationBias,
         int limit,

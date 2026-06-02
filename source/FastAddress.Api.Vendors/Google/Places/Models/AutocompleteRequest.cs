@@ -15,4 +15,7 @@ public sealed record AutocompleteRequest
     /// <summary>Filter for types to return. Can be up to 5 of Table A or B see
     /// <a href="https://developers.google.com/maps/documentation/places/web-service/place-types#about_the_type_tables">Place Types</a>.</summary>
     public IReadOnlyList<string>? IncludedPrimaryTypes { get; init; }
+
+    /// <summary>Optional area to bias ranking toward.</summary>
+    public LocationBias? LocationBias { get; init; }
 }
