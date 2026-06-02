@@ -16,7 +16,7 @@ internal sealed class GooglePlacesService(IPlacesApi places) : IGooglePlacesServ
 {
     private const string LanguageCode = "en-US";
     private const string RegionCode = "no";
-    private const string PlaceAutoCompleteFields = "*";
+    private const string PlaceAutoCompleteFields = "suggestions.placePrediction.placeId,suggestions.placePrediction.types,suggestions.placePrediction.text.text";
     private const string PlaceDetailsFields = "id,movedPlaceId,addressComponents,shortFormattedAddress,location,types";
 
     /// <inheritdoc/>
@@ -42,6 +42,11 @@ internal sealed class GooglePlacesService(IPlacesApi places) : IGooglePlacesServ
             LanguageCode,
             RegionCode,
             ct);
+
+        if (autocomplete.Suggestions is null)
+        {
+            yield break;
+        }
 
         var limit = request.Limit ?? autocomplete.Suggestions.Count;
         var predictions = autocomplete.Suggestions
@@ -89,12 +94,12 @@ internal sealed class GooglePlacesService(IPlacesApi places) : IGooglePlacesServ
 
         return new AddressSearchResult
         {
-            AddressComponents = details.AddressComponents,
+            AddressComponents = details.AddressComponents ?? [],
             Location = point,
             OrderScore = orderScore,
             PlaceId = details.MovedPlaceId ?? details.Id,
             ShortFormattedAddress = details.ShortFormattedAddress,
-            Types = details.Types,
+            Types = details.Types ?? [],
         };
     }
 }
