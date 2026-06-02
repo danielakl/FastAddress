@@ -10,6 +10,16 @@ public sealed record AddressResult
     /// <summary>Short, single-line formatted street address.</summary>
     public required string StreetAddress { get; init; }
 
+    /// <summary>Postal code, when known.</summary>
+    public string? PostalCode { get; init; }
+
+    /// <summary>Postal town, when known.</summary>
+    public string? PostalTown { get; init; }
+
+    /// <summary>Postal town and code joined for display, e.g. "Trondheim 7041"; empty when neither is set.</summary>
+    public string PostalLine =>
+        string.Join(" ", new[] { PostalTown, PostalCode }.Where(part => !string.IsNullOrWhiteSpace(part)));
+
     /// <summary>Latitude in degrees (WGS84).</summary>
     public double Latitude { get; init; }
 

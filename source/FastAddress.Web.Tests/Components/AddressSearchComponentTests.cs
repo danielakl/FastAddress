@@ -17,11 +17,12 @@ public sealed class AddressSearchComponentTests : BunitContext
     private const string Counter = "[data-testid='address-search-counter']";
     private const string ClearButton = "[data-testid='address-search-clear']";
     private const string Result = "[data-testid='address-search-result']";
+    private const string Locality = "[data-testid='address-search-result-locality']";
 
     private static readonly AddressResult[] SampleResults =
     [
-        new() { StreetAddress = "Lade allé 77, 7041 Trondheim", Latitude = 63.44, Longitude = 10.45, Score = 0.92 },
-        new() { StreetAddress = "Lade allé 80, 7041 Trondheim", Latitude = 63.45, Longitude = 10.46, Score = 0.81 },
+        new() { StreetAddress = "Lade allé 77", PostalCode = "7041", PostalTown = "Trondheim", Latitude = 63.44, Longitude = 10.45, Score = 0.92 },
+        new() { StreetAddress = "Lade allé 80", PostalCode = "7041", PostalTown = "Trondheim", Latitude = 63.45, Longitude = 10.46, Score = 0.81 },
     ];
 
     public AddressSearchComponentTests()
@@ -81,6 +82,35 @@ public sealed class AddressSearchComponentTests : BunitContext
 
         Assert.NotNull(state.SearchedLocation);
         Assert.Equal(63.44, state.SearchedLocation!.Value.Latitude, precision: 2);
+    }
+
+    [Fact]
+    public async Task Search_RendersPostalSubtext_WhenPostalDataPresent()
+    {
+        SetupSearch(SampleResults);
+        var cut = Render<AddressSearch>();
+
+        await cut.Find(Input).InputAsync(new ChangeEventArgs { Value = "Lade" });
+        cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll(Result).Count));
+
+        // Postal town then code, per the configured display order.
+        Assert.Equal("Trondheim 7041", cut.FindAll(Locality)[0].TextContent.Trim());
+    }
+
+    [Fact]
+    public async Task Search_OmitsPostalSubtext_WhenNoPostalData()
+    {
+        AddressResult[] withoutPostal =
+        [
+            new() { StreetAddress = "Lade allé 77", Latitude = 63.44, Longitude = 10.45, Score = 0.92 },
+        ];
+        SetupSearch(withoutPostal);
+        var cut = Render<AddressSearch>();
+
+        await cut.Find(Input).InputAsync(new ChangeEventArgs { Value = "Lade" });
+        cut.WaitForAssertion(() => Assert.Single(cut.FindAll(Result)));
+
+        Assert.Empty(cut.FindAll(Locality));
     }
 
     [Fact]

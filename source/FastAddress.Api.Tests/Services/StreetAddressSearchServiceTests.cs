@@ -42,6 +42,8 @@ public sealed class StreetAddressSearchServiceTests
             {
                 GooglePlaceId = "place-cache",
                 StreetLine = "Lade alle 77",
+                PostalCode = "7041",
+                PostalTown = "Trondheim",
                 Location = GeoTestData.Point(10.0, 63.0),
             },
             Similarity = similarity,
@@ -59,6 +61,8 @@ public sealed class StreetAddressSearchServiceTests
             [
                 new AddressComponent { LongText = "Lade alle", ShortText = "Lade alle", Types = [AddressComponentTypes.Route] },
                 new AddressComponent { LongText = "77 a", ShortText = "77 a", Types = [AddressComponentTypes.StreetNumber] },
+                new AddressComponent { LongText = "7041", ShortText = "7041", Types = [AddressComponentTypes.PostalCode] },
+                new AddressComponent { LongText = "Trondheim", ShortText = "Trondheim", Types = [AddressComponentTypes.PostalTown] },
             ],
         };
 
@@ -138,7 +142,54 @@ public sealed class StreetAddressSearchServiceTests
     }
 
     [Fact]
-    public async Task SearchAsync_CacheReadThrows_FallsThroughToGoogle()
+    public async Task Search_CacheHit_ProjectsPostalCodeAndTown()
+    {
+        // Arrange — a confident cached row carries postal data through to the entry.
+        GivenCacheReturns(Match(0.95));
+
+        // Act
+        var entry = Assert.Single(await service.Search(Query()).CollectAsync());
+
+        // Assert
+        Assert.Equal("7041", entry.PostalCode);
+        Assert.Equal("Trondheim", entry.PostalTown);
+    }
+
+    [Fact]
+    public async Task Search_GoogleResult_ProjectsPostalCodeAndTownFromComponents()
+    {
+        // Arrange — cache miss; postal components from Google flow into the entry.
+        GivenCacheReturns();
+        GivenGoogleReturns(GoogleResult("place-0", 0));
+
+        // Act
+        var entry = Assert.Single(await service.Search(Query()).CollectAsync());
+
+        // Assert
+        Assert.Equal("7041", entry.PostalCode);
+        Assert.Equal("Trondheim", entry.PostalTown);
+    }
+
+    [Fact]
+    public async Task Search_CacheMiss_ForwardsLocationBiasToGoogle()
+    {
+        // Arrange — a bias point on the query must reach the vendor request, not be dropped.
+        var bias = GeoTestData.Point(10.4, 63.4);
+        var query = new SearchStreetAddressQuery { Text = "Lade alle 77", Limit = 5, LocationBias = bias };
+        GivenCacheReturns();
+        GivenGoogleReturns(GoogleResult("place-0", 0));
+
+        // Act
+        await service.Search(query).CollectAsync();
+
+        // Assert
+        places.Received(1).Search(
+            Arg.Is<AddressSearchRequest>(r => r.LocationBias == bias),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Search_CacheReadThrows_FallsThroughToGoogle()
     {
         // Arrange — the DB read fails; the service should degrade to Google rather than throw.
         repository.SearchAsync(Arg.Any<string>(), Arg.Any<Point?>(), Arg.Any<int>(), Arg.Any<CancellationToken>())

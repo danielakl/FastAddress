@@ -34,6 +34,8 @@ export async function search(text, latitude, longitude) {
         const data = await response.json();
         return data.map((item) => ({
             streetAddress: item.streetAddress,
+            postalCode: item.postalCode ?? null,
+            postalTown: item.postalTown ?? null,
             longitude: item.location?.coordinates?.[0] ?? null,
             latitude: item.location?.coordinates?.[1] ?? null,
             score: item.score,

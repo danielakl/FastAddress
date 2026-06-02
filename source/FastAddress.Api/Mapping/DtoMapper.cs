@@ -24,6 +24,8 @@ internal static class DtoMapper
         return new StreetAddressDto
         {
             StreetAddress = entry.StreetLine,
+            PostalCode = entry.PostalCode,
+            PostalTown = entry.PostalTown,
             Location = entry.Location,
             Score = entry.Score,
         };

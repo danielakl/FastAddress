@@ -12,6 +12,14 @@ public sealed record StreetAddressDto
     /// </summary>
     public required string StreetAddress { get; init; }
 
+    /// <summary>Postal code, when known.</summary>
+    /// <example>7041</example>
+    public required string? PostalCode { get; init; }
+
+    /// <summary>Postal town, when known.</summary>
+    /// <example>Trondheim</example>
+    public required string? PostalTown { get; init; }
+
     /// <summary>
     /// Geographic location of the address (SRID 4326).
     /// </summary>

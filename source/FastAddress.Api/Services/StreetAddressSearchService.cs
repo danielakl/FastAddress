@@ -113,6 +113,8 @@ internal sealed partial class StreetAddressSearchService(
         {
             PlaceId = match.StreetAddress.GooglePlaceId,
             StreetLine = match.StreetAddress.StreetLine ?? string.Empty,
+            PostalCode = match.StreetAddress.PostalCode,
+            PostalTown = match.StreetAddress.PostalTown,
             Location = match.StreetAddress.Location!,
             Score = match.Similarity,
             IsCacheHit = true,
@@ -124,6 +126,8 @@ internal sealed partial class StreetAddressSearchService(
             PlaceId = result.PlaceId,
             // Prefer the derived street line; fall back to Google's formatted address when absent.
             StreetLine = upsert?.StreetLine ?? result.ShortFormattedAddress,
+            PostalCode = upsert?.PostalCode,
+            PostalTown = upsert?.PostalTown,
             // Use the precision-rounded location so a miss and a later cache hit agree on coordinates.
             Location = upsert?.Location ?? SpatialHelper.MakePrecise(result.Location),
             Score = 1d / (result.OrderScore + 1),
