@@ -14,6 +14,10 @@ public static class AddressComponentTypes
     /// <example>77 a</example>
     public const string StreetNumber = "street_number";
 
+    /// <summary>Named building or location. Used as the street line when route/number are absent.</summary>
+    /// <example>Trondheim Lufthavn Værnes</example>
+    public const string Premise = "premise";
+
     /// <summary>Postal code.</summary>
     /// <example>7041</example>
     public const string PostalCode = "postal_code";
