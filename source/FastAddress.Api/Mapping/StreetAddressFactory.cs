@@ -21,9 +21,11 @@ internal static class StreetAddressFactory
     {
         ArgumentNullException.ThrowIfNull(result);
 
+        // Prefer a precise route + number. Fallback to a named premise (e.g. an airport).
         var streetLine = JoinNonEmpty(
             GetComponent(AddressComponentTypes.Route, result),
-            GetComponent(AddressComponentTypes.StreetNumber, result));
+            GetComponent(AddressComponentTypes.StreetNumber, result))
+            ?? GetComponent(AddressComponentTypes.Premise, result);
 
         if (string.IsNullOrWhiteSpace(streetLine))
         {
