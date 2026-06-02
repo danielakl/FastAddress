@@ -21,6 +21,15 @@ internal sealed class StreetAddressRepository(
     /// <summary>How many candidates to pull per requested result before the in-memory proximity re-rank.</summary>
     private const int CandidateMultiplier = 4;
 
+    /// <summary>Shortest normalized query that activates prefix (ILike) matching; below this, single
+    /// characters would match nearly everything.</summary>
+    private const int MinPrefixMatchLength = 3;
+
+    /// <summary>Effective similarity granted to a prefix match so an exact-start hit is trusted as a
+    /// confident cache hit even when its raw trigram score is low. Comfortably exceeds the default
+    /// confidence threshold (0.50).</summary>
+    private const double PrefixMatchSimilarity = 0.95;
+
     /// <inheritdoc/>
     public async IAsyncEnumerable<StreetAddressMatch> Search(
         string text,
@@ -40,31 +49,51 @@ internal sealed class StreetAddressRepository(
             ? context.Clock.GetCurrentInstant() - maxAge
             : (Instant?)null;
 
-        // The GIN trigram filter is the only hard gate. Pull extra candidate buffer ordered by
-        // text similarity, then re-rank by the proximity composite in memory so we stay robust
-        // against Npgsql translation limits on the decay arithmetic.
-        var candidates = await context.StreetAddresses
+        // Two candidate gates: the GIN trigram filter for fuzzy matches, plus an ILike prefix match
+        // (for queries long enough to be selective) so exact-start hits surface before they reach the
+        // similarity threshold. Pull an extra candidate buffer, then re-rank by the proximity
+        // composite in memory so we stay robust against Npgsql translation limits on the decay arithmetic.
+        var usePrefix = normalized.Length >= MinPrefixMatchLength;
+        var prefixPattern = normalized + "%";
+
+        var gated = context.StreetAddresses
             .AsNoTracking()
-            .Where(a => EF.Functions.TrigramsAreSimilar(a.SearchText!, normalized))
-            .Where(a => cutoff == null || a.LastRefreshed >= cutoff)
+            .Where(a => cutoff == null || a.LastRefreshed >= cutoff);
+
+        gated = usePrefix
+            ? gated.Where(a => EF.Functions.TrigramsAreSimilar(a.SearchText!, normalized)
+                || EF.Functions.ILike(a.SearchText!, prefixPattern))
+            : gated.Where(a => EF.Functions.TrigramsAreSimilar(a.SearchText!, normalized));
+
+        var candidates = await gated
             .Select(a => new Candidate
             {
                 Entity = a,
                 TextScore = EF.Functions.TrigramsSimilarity(a.SearchText!, normalized),
+                IsPrefixMatch = usePrefix && EF.Functions.ILike(a.SearchText!, prefixPattern),
                 DistanceMeters = locationBias == null || a.Location == null ? null : a.Location.Distance(locationBias),
             })
-            .Where(c => c.TextScore >= minSimilarity)
-            .OrderByDescending(c => c.TextScore)
+            .Where(c => c.TextScore >= minSimilarity || c.IsPrefixMatch)
+            .OrderByDescending(c => c.IsPrefixMatch)
+            .ThenByDescending(c => c.TextScore)
             .Take(limit * CandidateMultiplier)
             .ToListAsync(ct);
 
+        // A prefix match is a strong signal regardless of its raw trigram score: grant it a high
+        // effective similarity so it both ranks up and clears the cache-hit confidence bar.
         var ranked = candidates
-            .OrderByDescending(c => BoostedScore(c.TextScore, c.DistanceMeters, options))
+            .Select(c => new
+            {
+                c.Entity,
+                Score = c.IsPrefixMatch ? Math.Max(c.TextScore, PrefixMatchSimilarity) : c.TextScore,
+                c.DistanceMeters,
+            })
+            .OrderByDescending(c => BoostedScore(c.Score, c.DistanceMeters, options))
             .Take(limit);
 
         foreach (var candidate in ranked)
         {
-            yield return new StreetAddressMatch { StreetAddress = candidate.Entity, Similarity = candidate.TextScore };
+            yield return new StreetAddressMatch { StreetAddress = candidate.Entity, Similarity = candidate.Score };
         }
     }
 
@@ -116,6 +145,7 @@ internal sealed class StreetAddressRepository(
     {
         public required Entities.StreetAddress Entity { get; init; }
         public required double TextScore { get; init; }
+        public required bool IsPrefixMatch { get; init; }
         public required double? DistanceMeters { get; init; }
     }
 }
