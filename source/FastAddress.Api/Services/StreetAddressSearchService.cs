@@ -5,7 +5,9 @@ using FastAddress.Api.Mapping;
 using FastAddress.Api.Models;
 using FastAddress.Api.Options;
 using FastAddress.Api.Vendors.Contracts;
+using FastAddress.Api.Vendors.Google.Places.Models;
 using FastAddress.Api.Vendors.Models;
+using FastAddress.Sdk.Helpers;
 
 using Microsoft.Extensions.Options;
 
@@ -38,6 +40,11 @@ internal sealed partial class StreetAddressSearchService(
 
         await foreach (var result in placesService.SearchAsync(ToVendorRequest(query), ct))
         {
+            if (!IsStreetAddress(result))
+            {
+                continue; // Drop non-address results (e.g. a city/locality) before storing or returning.
+            }
+
             var upsert = StreetAddressFactory.From(result);
             if (upsert is not null)
             {
