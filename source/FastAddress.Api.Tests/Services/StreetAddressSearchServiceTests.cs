@@ -47,14 +47,14 @@ public sealed class StreetAddressSearchServiceTests
             Similarity = similarity,
         };
 
-    private static AddressSearchResult GoogleResult(string placeId, int orderScore) =>
+    private static AddressSearchResult GoogleResult(string placeId, int orderScore, IReadOnlyList<string>? types = null) =>
         new()
         {
             PlaceId = placeId,
             OrderScore = orderScore,
             ShortFormattedAddress = "Lade alle 77 a, Trondheim",
             Location = GeoTestData.Point(10.46, 63.44),
-            Types = ["street_address"],
+            Types = types ?? ["street_address"],
             AddressComponents =
             [
                 new AddressComponent { LongText = "Lade alle", ShortText = "Lade alle", Types = [AddressComponentTypes.Route] },
@@ -83,6 +83,41 @@ public sealed class StreetAddressSearchServiceTests
         Assert.Single(results);
         Assert.True(results[0].IsCacheHit);
         places.DidNotReceive().SearchAsync(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SearchAsync_SingleMatchAboveConfidence_ServesFromCacheRegardlessOfCount()
+    {
+        // Arrange — one match at 0.6 clears the 0.5 confidence bar even though only a single row exists
+        // (the removed result-count gate would previously have forced a Google call here).
+        GivenCacheReturns(Match(0.6));
+
+        // Act
+        var results = await service.SearchAsync(Query()).CollectAsync();
+
+        // Assert
+        Assert.True(Assert.Single(results).IsCacheHit);
+        places.DidNotReceive().SearchAsync(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SearchAsync_CacheMiss_DropsNonStreetAddressResults()
+    {
+        // Arrange — Google returns a bare locality alongside a street address; only the latter is usable.
+        GivenCacheReturns();
+        GivenGoogleReturns(
+            GoogleResult("locality-0", orderScore: 0, types: ["locality"]),
+            GoogleResult("street-1", orderScore: 1));
+
+        // Act
+        var results = await service.SearchAsync(Query()).CollectAsync();
+
+        // Assert
+        Assert.Equal("street-1", Assert.Single(results).PlaceId);
+        await repository.DidNotReceive().UpsertByPlaceIdAsync(
+            "locality-0", Arg.Any<StreetAddressUpsert>(), Arg.Any<CancellationToken>());
+        await repository.Received(1).UpsertByPlaceIdAsync(
+            "street-1", Arg.Any<StreetAddressUpsert>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
