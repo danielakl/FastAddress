@@ -1,20 +1,15 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
-
 using FastAddress.Api.Database;
 using FastAddress.Api.Database.Repositories;
 using FastAddress.Api.Options;
 using FastAddress.Api.Services;
 using FastAddress.Api.Vendors.Extensions;
 using FastAddress.Sdk.Helpers;
+using FastAddress.Sdk.Serialization;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-using NetTopologySuite.IO.Converters;
-
 using NodaTime;
-using NodaTime.Serialization.SystemTextJson;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -63,16 +58,7 @@ services.AddDbContext<FastAddressDbContext>((sp, opts) =>
 services.AddHealthChecks();
 services.AddControllers()
     .AddControllersAsServices()
-    .AddJsonOptions(opts =>
-    {
-        var serializerOpts = opts.JsonSerializerOptions;
-        serializerOpts.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
-        serializerOpts.Converters.Add(new GeoJsonConverterFactory(SpatialHelper.GeometryFactoryInstance));
-        serializerOpts.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: true));
-        serializerOpts.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
-        serializerOpts.PropertyNameCaseInsensitive = true;
-        serializerOpts.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-    });
+    .AddJsonOptions(opts => FastAddressJsonOptions.Configure(opts.JsonSerializerOptions));
 
 var app = builder.Build();
 
