@@ -14,7 +14,7 @@ namespace FastAddress.Api.Vendors.Google.Places;
 /// </summary>
 internal sealed class GooglePlacesService(IPlacesApi places) : IGooglePlacesService
 {
-    private const string LanguageCode = "nb-NO";
+    private const string LanguageCode = "en-US";
     private const string RegionCode = "no";
     private const string PlaceAutoCompleteFields = "*";
     private const string PlaceDetailsFields = "id,movedPlaceId,addressComponents,shortFormattedAddress,location,types";
