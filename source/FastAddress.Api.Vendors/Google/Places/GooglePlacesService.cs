@@ -34,8 +34,9 @@ internal sealed class GooglePlacesService(IPlacesApi places) : IGooglePlacesServ
         var autocomplete = await places.AutocompleteAsync(
             new AutocompleteRequest
             {
-                Input = request.Query,
+                IncludedPrimaryTypes = [..PlaceTypes.StreetAddressTypes],
                 IncludedRegionCodes = [RegionCode],
+                Input = request.Query
             },
             PlaceAutoCompleteFields,
             LanguageCode,
