@@ -20,4 +20,53 @@
     </Content>
   </ItemGroup>
 
+  <!-- Tailwind source is compiled to wwwroot/app.css by the targets below; don't treat it as content. -->
+  <ItemGroup>
+    <None Include="Styles\app.input.css" />
+  </ItemGroup>
+
+  <!--
+    Tailwind CSS via the standalone CLI (no Node). The platform binary is downloaded once into obj/
+    on first build and cached. Override the asset for unusual platforms with -p:TailwindAsset=...
+    (the Docker build uses the musl asset).
+  -->
+  <PropertyGroup>
+    <TailwindVersion>v4.1.13</TailwindVersion>
+    <TailwindToolsDir>$(BaseIntermediateOutputPath)tailwind\</TailwindToolsDir>
+    <TailwindInput>Styles/app.input.css</TailwindInput>
+    <TailwindOutput>wwwroot/app.css</TailwindOutput>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TailwindAsset)' == ''">
+    <TailwindAsset Condition="'$(NETCoreSdkRuntimeIdentifier)' == 'linux-x64'">tailwindcss-linux-x64</TailwindAsset>
+    <TailwindAsset Condition="'$(NETCoreSdkRuntimeIdentifier)' == 'linux-musl-x64'">tailwindcss-linux-x64-musl</TailwindAsset>
+    <TailwindAsset Condition="'$(NETCoreSdkRuntimeIdentifier)' == 'linux-arm64'">tailwindcss-linux-arm64</TailwindAsset>
+    <TailwindAsset Condition="'$(NETCoreSdkRuntimeIdentifier)' == 'linux-musl-arm64'">tailwindcss-linux-arm64-musl</TailwindAsset>
+    <TailwindAsset Condition="'$(NETCoreSdkRuntimeIdentifier)' == 'osx-x64'">tailwindcss-macos-x64</TailwindAsset>
+    <TailwindAsset Condition="'$(NETCoreSdkRuntimeIdentifier)' == 'osx-arm64'">tailwindcss-macos-arm64</TailwindAsset>
+    <TailwindAsset Condition="'$(NETCoreSdkRuntimeIdentifier)' == 'win-x64'">tailwindcss-windows-x64.exe</TailwindAsset>
+    <TailwindAsset Condition="'$(NETCoreSdkRuntimeIdentifier)' == 'win-arm64'">tailwindcss-windows-arm64.exe</TailwindAsset>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TailwindExe Condition="$([MSBuild]::IsOSPlatform('Windows'))">$(TailwindToolsDir)tailwindcss.exe</TailwindExe>
+    <TailwindExe Condition="!$([MSBuild]::IsOSPlatform('Windows'))">$(TailwindToolsDir)tailwindcss</TailwindExe>
+  </PropertyGroup>
+
+  <Target Name="DownloadTailwind" BeforeTargets="BuildTailwindCss" Condition="!Exists('$(TailwindExe)')">
+    <Error Condition="'$(TailwindAsset)' == ''"
+           Text="Cannot determine the Tailwind asset for RID '$(NETCoreSdkRuntimeIdentifier)'. Pass -p:TailwindAsset=tailwindcss-&lt;platform&gt; (see https://github.com/tailwindlabs/tailwindcss/releases)." />
+    <MakeDir Directories="$(TailwindToolsDir)" />
+    <Message Importance="high" Text="Downloading Tailwind CLI $(TailwindVersion) ($(TailwindAsset))..." />
+    <DownloadFile SourceUrl="https://github.com/tailwindlabs/tailwindcss/releases/download/$(TailwindVersion)/$(TailwindAsset)"
+                  DestinationFolder="$(TailwindToolsDir)"
+                  DestinationFileName="$([System.IO.Path]::GetFileName('$(TailwindExe)'))"
+                  Retries="3" />
+    <Exec Condition="!$([MSBuild]::IsOSPlatform('Windows'))" Command="chmod +x &quot;$(TailwindExe)&quot;" />
+  </Target>
+
+  <Target Name="BuildTailwindCss" BeforeTargets="BeforeBuild;BeforeRebuild">
+    <Exec Command="&quot;$(TailwindExe)&quot; --input &quot;$(TailwindInput)&quot; --output &quot;$(TailwindOutput)&quot; --minify" />
+  </Target>
+
 </Project>
