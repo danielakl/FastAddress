@@ -1,0 +1,209 @@
+@using FastAddress.Sdk.Dto
+@using FastAddress.Web.Models
+@using FastAddress.Web.State
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+@inject SearchState State
+
+<div class="relative z-30 w-full">
+    <div class="relative">
+        <input type="text"
+               data-testid="address-search-input"
+               value="@_query"
+               @oninput="HandleInputAsync"
+               @onfocus="HandleFocus"
+               @onfocusout="HandleFocusOutAsync"
+               maxlength="@SearchStreetAddressDto.AddressMaxLength"
+               placeholder="Search a street address…"
+               autocomplete="off"
+               spellcheck="false"
+               aria-label="Street address search"
+               class="w-full rounded-xl border border-line bg-panel py-3 pl-4 pr-20 text-base text-ink shadow-sm outline-none transition placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/30" />
+
+        <div class="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-2">
+            <span data-testid="address-search-counter"
+                  class="pointer-events-none font-mono text-xs tabular-nums text-muted transition-opacity duration-200 @(IsCounterVisible ? "opacity-100" : "opacity-0")">
+                @(_query.Length)/@SearchStreetAddressDto.AddressMaxLength
+            </span>
+
+            @if (!string.IsNullOrEmpty(_query))
+            {
+                <button type="button"
+                        data-testid="address-search-clear"
+                        @onclick="ClearAsync"
+                        @onmousedown:preventDefault="true"
+                        aria-label="Clear search"
+                        class="grid size-6 place-items-center rounded-full text-muted transition hover:bg-line hover:text-ink">
+                    <svg class="size-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M5 5l10 10M15 5L5 15" />
+                    </svg>
+                </button>
+            }
+        </div>
+    </div>
+
+    @if (_showResults && _results is { Length: > 0 })
+    {
+        <ul data-testid="address-search-results"
+            class="absolute z-20 mt-2 max-h-80 w-full overflow-auto rounded-xl border border-line bg-panel py-1 shadow-lg">
+            @foreach (var result in _results)
+            {
+                <li>
+                    <button type="button"
+                            data-testid="address-search-result"
+                            @onmousedown:preventDefault="true"
+                            @onclick="() => SelectAsync(result)"
+                            class="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left transition hover:bg-accent/10">
+                        <span class="truncate text-sm text-ink">@result.StreetAddress</span>
+                        <span class="shrink-0 rounded-full bg-line px-2 py-0.5 font-mono text-xs text-muted">
+                            @result.Score.ToString("P0")
+                        </span>
+                    </button>
+                </li>
+            }
+        </ul>
+    }
+    else if (_showResults && _searched && _results is { Length: 0 } && !string.IsNullOrWhiteSpace(_query))
+    {
+        <div data-testid="address-search-empty"
+             class="absolute z-20 mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm text-muted shadow-lg">
+            No matches for “@_query”.
+        </div>
+    }
+</div>
+
+@code {
+    private const int DebounceMilliseconds = 250;
+    private const string ModulePath = "./Components/AddressSearch.razor.js";
+
+    private string _query = string.Empty;
+    private AddressResult[]? _results;
+    private bool _showResults;
+    private bool _searched;
+
+    private bool IsCounterVisible => _query.Length > 0;
+
+    private IJSObjectReference? _module;
+    private CancellationTokenSource? _debounceCts;
+
+    /// <summary>Raised when a search fails (the parent typically shows an error modal).</summary>
+    [Parameter]
+    public EventCallback<string> OnError { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _module = await JS.InvokeAsync<IJSObjectReference>("import", ModulePath);
+        }
+    }
+
+    private async Task HandleInputAsync(ChangeEventArgs args)
+    {
+        _query = args.Value?.ToString() ?? string.Empty;
+        await DebouncedSearchAsync();
+    }
+
+    private async Task DebouncedSearchAsync()
+    {
+        _debounceCts?.Cancel();
+        _debounceCts?.Dispose();
+        _debounceCts = new CancellationTokenSource();
+        var token = _debounceCts.Token;
+
+        try
+        {
+            await Task.Delay(DebounceMilliseconds, token);
+        }
+        catch (OperationCanceledException)
+        {
+            return; // Superseded by a newer keystroke.
+        }
+
+        await SearchAsync(_query, token);
+    }
+
+    private async Task SearchAsync(string text, CancellationToken token)
+    {
+        if (_module is null || string.IsNullOrWhiteSpace(text))
+        {
+            _results = null;
+            _showResults = false;
+            _searched = false;
+            StateHasChanged();
+            return;
+        }
+
+        var bias = State.BiasLocation;
+
+        try
+        {
+            var found = await _module.InvokeAsync<AddressResult[]?>(
+                "search", text, bias?.Latitude, bias?.Longitude);
+
+            // Null = the request was aborted (superseded); ignore it. Also drop stale results.
+            if (found is null || token.IsCancellationRequested || text != _query)
+            {
+                return;
+            }
+
+            _results = found;
+            _searched = true;
+            _showResults = true;
+        }
+        catch (JSException ex)
+        {
+            _results = null;
+            _showResults = false;
+            await OnError.InvokeAsync($"Address search failed: {ex.Message}");
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task SelectAsync(AddressResult result)
+    {
+        _query = result.StreetAddress;
+        _showResults = false;
+        await State.SetSearchedLocationAsync(new GeoPoint(result.Latitude, result.Longitude));
+    }
+
+    private async Task ClearAsync()
+    {
+        _debounceCts?.Cancel();
+        _query = string.Empty;
+        _results = null;
+        _showResults = false;
+        _searched = false;
+        await Task.CompletedTask;
+    }
+
+    private void HandleFocus() => _showResults = _results is { Length: > 0 };
+
+    private async Task HandleFocusOutAsync()
+    {
+        // Let a click on a result register first; selection uses mousedown:preventDefault to keep focus.
+        await Task.Delay(150);
+        _showResults = false;
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _debounceCts?.Cancel();
+        _debounceCts?.Dispose();
+
+        try
+        {
+            if (_module is not null)
+            {
+                await _module.InvokeVoidAsync("dispose");
+                await _module.DisposeAsync();
+            }
+        }
+        catch (JSDisconnectedException)
+        {
+            // The circuit is already gone; nothing to clean up.
+        }
+    }
+}

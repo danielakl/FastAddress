@@ -1,0 +1,50 @@
+@if (_visible)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4 backdrop-blur-sm"
+         @onclick="Dismiss">
+        <div role="alertdialog"
+             data-testid="error-modal"
+             aria-modal="true"
+             aria-labelledby="error-modal-title"
+             @onclick:stopPropagation="true"
+             class="w-full max-w-md rounded-2xl border border-line bg-panel p-6 shadow-xl">
+            <div class="flex items-start gap-3">
+                <span class="grid size-9 shrink-0 place-items-center rounded-full bg-red-100 text-red-600">
+                    <svg class="size-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                        <path d="M10 6v5M10 14h.01" />
+                        <circle cx="10" cy="10" r="8" />
+                    </svg>
+                </span>
+                <div class="min-w-0">
+                    <h2 id="error-modal-title" class="text-base font-semibold text-ink">Something went wrong</h2>
+                    <p class="mt-1 text-sm text-muted">@_message</p>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end">
+                <button type="button"
+                        data-testid="error-modal-dismiss"
+                        @onclick="Dismiss"
+                        class="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent-strong">
+                    Dismiss
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _visible;
+    private string? _message;
+
+    /// <summary>Show the modal with the given message.</summary>
+    /// <param name="message">The error message to display.</param>
+    public void Show(string message)
+    {
+        _message = message;
+        _visible = true;
+        StateHasChanged();
+    }
+
+    private void Dismiss() => _visible = false;
+}

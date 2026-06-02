@@ -13,9 +13,14 @@ namespace FastAddress.Sdk.Dto;
 /// </summary>
 public sealed record SearchStreetAddressDto : IValidatable<SearchStreetAddressDto>
 {
-    private const int AddressMaxLength = 250;
-    private const int MaxLimit = 25;
-    private const int MinLimit = 1;
+    /// <summary>Maximum accepted length of the <see cref="Address"/> query.</summary>
+    public const int AddressMaxLength = 250;
+
+    /// <summary>Maximum number of results a search may request.</summary>
+    public const int MaxLimit = 25;
+
+    /// <summary>Minimum number of results a search may request.</summary>
+    public const int MinLimit = 1;
 
     /// <summary>Free-text street address query.</summary>
     public string? Address { get; init; }

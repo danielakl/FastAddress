@@ -2,12 +2,16 @@ using FastAddress.Sdk.Api;
 using FastAddress.Sdk.Serialization;
 using FastAddress.Web.Components;
 using FastAddress.Web.Proxy;
+using FastAddress.Web.State;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// Per-circuit state shared between the search box and the map.
+builder.Services.AddScoped<SearchState>();
 
 // Serialize the proxy's own request/response (incl. GeoJSON points) exactly as the API does.
 builder.Services.ConfigureHttpJsonOptions(options => FastAddressJsonOptions.Configure(options.SerializerOptions));
