@@ -21,7 +21,7 @@ namespace FastAddress.Api.Controllers;
 public sealed class AddressController : ControllerBase
 {
     [HttpPost("search")]
-    public async IAsyncEnumerable<StreetAddressDto> SearchAddressesAsync(
+    public async IAsyncEnumerable<StreetAddressDto> SearchAddresses(
         [FromBody] SearchStreetAddressDto searchDto,
         [FromServices] IStreetAddressSearchService searchService,
         [EnumeratorCancellation] CancellationToken ct = default)
@@ -35,7 +35,7 @@ public sealed class AddressController : ControllerBase
             LocationBias = searchDto.LocationBias,
         };
 
-        await foreach (var entry in searchService.SearchAsync(query, ct))
+        await foreach (var entry in searchService.Search(query, ct))
         {
             yield return DtoMapper.ToStreetAddressDto(entry);
         }

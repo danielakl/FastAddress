@@ -81,6 +81,43 @@ public sealed class StreetAddressFactoryTests
     }
 
     [Fact]
+    public void From_PremiseWithoutRouteOrStreetNumber_UsesPremiseAsStreetLine()
+    {
+        // Arrange — a named premise (e.g. an airport) with no route/number, mirroring the
+        // "Trondheim Lufthavn Værnes" case where Google omits street components.
+        var result = Result(
+            Component("Trondheim Lufthavn Værnes", "Trondheim Lufthavn Værnes", AddressComponentTypes.Premise),
+            Component("7500", "7500", AddressComponentTypes.PostalCode),
+            Component("Stjørdal", "Stjørdal", AddressComponentTypes.PostalTown));
+
+        // Act
+        var upsert = StreetAddressFactory.From(result);
+
+        // Assert
+        Assert.NotNull(upsert);
+        Assert.Equal("Trondheim Lufthavn Værnes", upsert.StreetLine);
+        Assert.Equal("7500", upsert.PostalCode);
+        Assert.Equal("Stjørdal", upsert.PostalTown);
+    }
+
+    [Fact]
+    public void From_RouteAndPremiseBothPresent_PrefersRouteOverPremise()
+    {
+        // Arrange — route+number always win; the premise is only a fallback.
+        var result = Result(
+            Component("Lade alle", "Lade alle", AddressComponentTypes.Route),
+            Component("77", "77", AddressComponentTypes.StreetNumber),
+            Component("Some Building", "Some Building", AddressComponentTypes.Premise));
+
+        // Act
+        var upsert = StreetAddressFactory.From(result);
+
+        // Assert
+        Assert.NotNull(upsert);
+        Assert.Equal("Lade alle 77", upsert.StreetLine);
+    }
+
+    [Fact]
     public void From_PostalTownMissing_FallsBackToLocality()
     {
         // Arrange

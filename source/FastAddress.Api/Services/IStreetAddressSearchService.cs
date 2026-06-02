@@ -13,5 +13,5 @@ public interface IStreetAddressSearchService
     /// <param name="query">The search query.</param>
     /// <param name="ct">Cancellation token for canceling the ongoing operation.</param>
     /// <returns>Matching street address entries.</returns>
-    IAsyncEnumerable<StreetAddressSearchEntry> SearchAsync(SearchStreetAddressQuery query, CancellationToken ct = default);
+    IAsyncEnumerable<StreetAddressSearchEntry> Search(SearchStreetAddressQuery query, CancellationToken ct = default);
 }

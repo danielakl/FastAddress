@@ -67,45 +67,45 @@ public sealed class StreetAddressSearchServiceTests
         };
 
     private void GivenCacheReturns(params StreetAddressMatch[] matches) =>
-        repository.SearchAsync(Arg.Any<string>(), Arg.Any<Point?>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+        repository.Search(Arg.Any<string>(), Arg.Any<Point?>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(matches.AsAsyncEnumerable());
 
     private void GivenGoogleReturns(params AddressSearchResult[] results) =>
-        places.SearchAsync(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>())
+        places.Search(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>())
             .Returns(results.AsAsyncEnumerable());
 
     [Fact]
-    public async Task SearchAsync_ConfidentCacheHit_DoesNotCallGoogle()
+    public async Task Search_ConfidentCacheHit_DoesNotCallGoogle()
     {
         // Arrange — a single near-exact match clears the short-circuit threshold.
         GivenCacheReturns(Match(0.95));
 
         // Act
-        var results = await service.SearchAsync(Query()).CollectAsync();
+        var results = await service.Search(Query()).CollectAsync();
 
         // Assert
         Assert.Single(results);
         Assert.True(results[0].IsCacheHit);
-        places.DidNotReceive().SearchAsync(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>());
+        places.DidNotReceive().Search(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task SearchAsync_SingleMatchAboveConfidence_ServesFromCacheRegardlessOfCount()
+    public async Task Search_SingleMatchAboveConfidence_ServesFromCacheRegardlessOfCount()
     {
         // Arrange — one match at 0.6 clears the 0.5 confidence bar even though only a single row exists
         // (the removed result-count gate would previously have forced a Google call here).
         GivenCacheReturns(Match(0.6));
 
         // Act
-        var results = await service.SearchAsync(Query()).CollectAsync();
+        var results = await service.Search(Query()).CollectAsync();
 
         // Assert
         Assert.True(Assert.Single(results).IsCacheHit);
-        places.DidNotReceive().SearchAsync(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>());
+        places.DidNotReceive().Search(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task SearchAsync_CacheMiss_DropsNonStreetAddressResults()
+    public async Task Search_CacheMiss_DropsNonStreetAddressResults()
     {
         // Arrange — Google returns a bare locality alongside a street address; only the latter is usable.
         GivenCacheReturns();
@@ -114,7 +114,7 @@ public sealed class StreetAddressSearchServiceTests
             GoogleResult("street-1", orderScore: 1));
 
         // Act
-        var results = await service.SearchAsync(Query()).CollectAsync();
+        var results = await service.Search(Query()).CollectAsync();
 
         // Assert
         Assert.Equal("street-1", Assert.Single(results).PlaceId);
@@ -125,14 +125,14 @@ public sealed class StreetAddressSearchServiceTests
     }
 
     [Fact]
-    public async Task SearchAsync_CacheMiss_CallsGoogleAndUpsertsEachResult()
+    public async Task Search_CacheMiss_CallsGoogleAndUpsertsEachResult()
     {
         // Arrange — no cached matches forces the Google fallback.
         GivenCacheReturns();
         GivenGoogleReturns(GoogleResult("place-0", 0), GoogleResult("place-1", 1));
 
         // Act
-        var results = await service.SearchAsync(Query()).CollectAsync();
+        var results = await service.Search(Query()).CollectAsync();
 
         // Assert
         Assert.Equal(2, results.Count);
@@ -192,15 +192,15 @@ public sealed class StreetAddressSearchServiceTests
     public async Task Search_CacheReadThrows_FallsThroughToGoogle()
     {
         // Arrange — the DB read fails; the service should degrade to Google rather than throw.
-        repository.SearchAsync(Arg.Any<string>(), Arg.Any<Point?>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+        repository.Search(Arg.Any<string>(), Arg.Any<Point?>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(_ => throw new InvalidOperationException("db down"));
         GivenGoogleReturns(GoogleResult("place-0", 0));
 
         // Act
-        var results = await service.SearchAsync(Query()).CollectAsync();
+        var results = await service.Search(Query()).CollectAsync();
 
         // Assert
         Assert.Single(results);
-        places.Received(1).SearchAsync(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>());
+        places.Received(1).Search(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>());
     }
 }

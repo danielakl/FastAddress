@@ -21,7 +21,7 @@ internal sealed partial class StreetAddressSearchService(
     ILogger<StreetAddressSearchService> logger) : IStreetAddressSearchService
 {
     /// <inheritdoc/>
-    public async IAsyncEnumerable<StreetAddressSearchEntry> SearchAsync(
+    public async IAsyncEnumerable<StreetAddressSearchEntry> Search(
         SearchStreetAddressQuery query,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
@@ -38,7 +38,7 @@ internal sealed partial class StreetAddressSearchService(
             yield break; // Google is never called on a cache hit.
         }
 
-        await foreach (var result in placesService.SearchAsync(ToVendorRequest(query), ct))
+        await foreach (var result in placesService.Search(ToVendorRequest(query), ct))
         {
             if (!IsStreetAddress(result))
             {
@@ -62,7 +62,7 @@ internal sealed partial class StreetAddressSearchService(
         try
         {
             var matches = new List<StreetAddressMatch>();
-            await foreach (var match in addressRepo.SearchAsync(query.Text, query.LocationBias, query.Limit, ct))
+            await foreach (var match in addressRepo.Search(query.Text, query.LocationBias, query.Limit, ct))
             {
                 matches.Add(match);
             }

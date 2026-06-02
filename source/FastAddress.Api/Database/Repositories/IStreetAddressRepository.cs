@@ -20,7 +20,7 @@ public interface IStreetAddressRepository
     /// <param name="limit">Maximum number of matches to return.</param>
     /// <param name="ct">Cancellation token for canceling the ongoing operation.</param>
     /// <returns>Matches ordered by proximity-boosted relevance, each carrying its raw similarity.</returns>
-    IAsyncEnumerable<StreetAddressMatch> SearchAsync(
+    IAsyncEnumerable<StreetAddressMatch> Search(
         string text,
         Point? locationBias,
         int limit,

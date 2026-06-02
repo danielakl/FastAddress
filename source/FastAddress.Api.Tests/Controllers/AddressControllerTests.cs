@@ -28,36 +28,36 @@ public sealed class AddressControllerTests
         new() { Address = address, Limit = limit, LocationBias = GeoTestData.Point(10.0, 63.0) };
 
     private void GivenSearchReturns(params StreetAddressSearchEntry[] entries) =>
-        searchService.SearchAsync(Arg.Any<SearchStreetAddressQuery>(), Arg.Any<CancellationToken>())
+        searchService.Search(Arg.Any<SearchStreetAddressQuery>(), Arg.Any<CancellationToken>())
             .Returns(entries.AsAsyncEnumerable());
 
     [Fact]
-    public async Task SearchAddressesAsync_ValidRequest_ReturnsMappedStreetAddressDtos()
+    public async Task SearchAddresses_ValidRequest_ReturnsMappedStreetAddressDtos()
     {
         // Arrange
         GivenSearchReturns(Entry("Addr 0"), Entry("Addr 1"));
         var controller = new AddressController();
 
         // Act
-        var results = await controller.SearchAddressesAsync(SearchDto(), searchService).CollectAsync();
+        var results = await controller.SearchAddresses(SearchDto(), searchService).CollectAsync();
 
         // Assert
         Assert.Equal(new[] { "Addr 0", "Addr 1" }, results.Select(r => r.StreetAddress));
     }
 
     [Fact]
-    public async Task SearchAddressesAsync_InvalidRequest_ThrowsValidationException()
+    public async Task SearchAddresses_InvalidRequest_ThrowsValidationException()
     {
         // Arrange
         var controller = new AddressController();
 
         // Act + Assert
         await Assert.ThrowsAsync<ValidationException>(async () =>
-            await controller.SearchAddressesAsync(SearchDto(address: ""), searchService).CollectAsync());
+            await controller.SearchAddresses(SearchDto(address: ""), searchService).CollectAsync());
     }
 
     [Fact]
-    public async Task SearchAddressesAsync_ValidRequest_PassesCleanedQueryToService()
+    public async Task SearchAddresses_ValidRequest_PassesCleanedQueryToService()
     {
         // Arrange
         GivenSearchReturns();
@@ -65,10 +65,10 @@ public sealed class AddressControllerTests
         var searchDto = SearchDto(address: "  Lade alle 77  ", limit: 5);
 
         // Act
-        await controller.SearchAddressesAsync(searchDto, searchService).CollectAsync();
+        await controller.SearchAddresses(searchDto, searchService).CollectAsync();
 
         // Assert
-        searchService.Received(1).SearchAsync(
+        searchService.Received(1).Search(
             Arg.Is<SearchStreetAddressQuery>(q => q.Text == "Lade alle 77" && q.Limit == 5 && q.LocationBias != null),
             Arg.Any<CancellationToken>());
     }

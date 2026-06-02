@@ -34,13 +34,13 @@ public sealed class GooglePlacesServiceTests
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task SearchAsync_BlankQuery_YieldsNothingAndCallsNoApi(string query)
+    public async Task Search_BlankQuery_YieldsNothingAndCallsNoApi(string query)
     {
         // Arrange
         var service = CreateService();
 
         // Act
-        var results = await service.SearchAsync(new AddressSearchRequest { Query = query, Limit = null })
+        var results = await service.Search(new AddressSearchRequest { Query = query, Limit = null })
             .CollectAsync();
 
         // Assert
@@ -49,18 +49,18 @@ public sealed class GooglePlacesServiceTests
     }
 
     [Fact]
-    public async Task SearchAsync_NullRequest_ThrowsArgumentNullException()
+    public async Task Search_NullRequest_ThrowsArgumentNullException()
     {
         // Arrange
         var service = CreateService();
 
         // Act + Assert
         await Assert.ThrowsAsync<ArgumentNullException>(async () =>
-            await service.SearchAsync(null!).CollectAsync());
+            await service.Search(null!).CollectAsync());
     }
 
     [Fact]
-    public async Task SearchAsync_MultiplePredictions_PreservesAutocompleteRankAsOrderScore()
+    public async Task Search_MultiplePredictions_PreservesAutocompleteRankAsOrderScore()
     {
         // Arrange
         GivenAutocomplete(PlacesBuilders.Prediction("p0"), PlacesBuilders.Prediction("p1"), PlacesBuilders.Prediction("p2"));
@@ -70,7 +70,7 @@ public sealed class GooglePlacesServiceTests
         var service = CreateService();
 
         // Act
-        var results = await service.SearchAsync(new AddressSearchRequest { Query = "lade", Limit = null })
+        var results = await service.Search(new AddressSearchRequest { Query = "lade", Limit = null })
             .CollectAsync();
 
         // Assert
@@ -80,7 +80,7 @@ public sealed class GooglePlacesServiceTests
     }
 
     [Fact]
-    public async Task SearchAsync_LimitProvided_FetchesOnlyTheRequestedNumberOfPredictions()
+    public async Task Search_LimitProvided_FetchesOnlyTheRequestedNumberOfPredictions()
     {
         // Arrange
         GivenAutocomplete(PlacesBuilders.Prediction("p0"), PlacesBuilders.Prediction("p1"), PlacesBuilders.Prediction("p2"));
@@ -90,7 +90,7 @@ public sealed class GooglePlacesServiceTests
         var service = CreateService();
 
         // Act
-        var results = await service.SearchAsync(new AddressSearchRequest { Query = "lade", Limit = 2 })
+        var results = await service.Search(new AddressSearchRequest { Query = "lade", Limit = 2 })
             .CollectAsync();
 
         // Assert
@@ -99,7 +99,7 @@ public sealed class GooglePlacesServiceTests
     }
 
     [Fact]
-    public async Task SearchAsync_SuggestionWithNullPrediction_IsSkipped()
+    public async Task Search_SuggestionWithNullPrediction_IsSkipped()
     {
         // Arrange
         GivenAutocomplete(PlacesBuilders.Prediction("p0"), null, PlacesBuilders.Prediction("p1"));
@@ -108,7 +108,7 @@ public sealed class GooglePlacesServiceTests
         var service = CreateService();
 
         // Act
-        var results = await service.SearchAsync(new AddressSearchRequest { Query = "lade", Limit = null })
+        var results = await service.Search(new AddressSearchRequest { Query = "lade", Limit = null })
             .CollectAsync();
 
         // Assert
@@ -116,7 +116,7 @@ public sealed class GooglePlacesServiceTests
     }
 
     [Fact]
-    public async Task SearchAsync_PlaceMissingLocation_IsSkipped()
+    public async Task Search_PlaceMissingLocation_IsSkipped()
     {
         // Arrange
         GivenAutocomplete(PlacesBuilders.Prediction("p0"), PlacesBuilders.Prediction("p1"));
@@ -125,7 +125,7 @@ public sealed class GooglePlacesServiceTests
         var service = CreateService();
 
         // Act
-        var results = await service.SearchAsync(new AddressSearchRequest { Query = "lade", Limit = null })
+        var results = await service.Search(new AddressSearchRequest { Query = "lade", Limit = null })
             .CollectAsync();
 
         // Assert
@@ -133,7 +133,7 @@ public sealed class GooglePlacesServiceTests
     }
 
     [Fact]
-    public async Task SearchAsync_PlaceMissingShortFormattedAddress_IsSkipped()
+    public async Task Search_PlaceMissingShortFormattedAddress_IsSkipped()
     {
         // Arrange
         GivenAutocomplete(PlacesBuilders.Prediction("p0"), PlacesBuilders.Prediction("p1"));
@@ -142,7 +142,7 @@ public sealed class GooglePlacesServiceTests
         var service = CreateService();
 
         // Act
-        var results = await service.SearchAsync(new AddressSearchRequest { Query = "lade", Limit = null })
+        var results = await service.Search(new AddressSearchRequest { Query = "lade", Limit = null })
             .CollectAsync();
 
         // Assert
@@ -150,7 +150,7 @@ public sealed class GooglePlacesServiceTests
     }
 
     [Fact]
-    public async Task SearchAsync_PlaceHasMovedPlaceId_UsesMovedPlaceIdAsResultPlaceId()
+    public async Task Search_PlaceHasMovedPlaceId_UsesMovedPlaceIdAsResultPlaceId()
     {
         // Arrange
         GivenAutocomplete(PlacesBuilders.Prediction("p0"));
@@ -158,7 +158,7 @@ public sealed class GooglePlacesServiceTests
         var service = CreateService();
 
         // Act
-        var results = await service.SearchAsync(new AddressSearchRequest { Query = "lade", Limit = null })
+        var results = await service.Search(new AddressSearchRequest { Query = "lade", Limit = null })
             .CollectAsync();
 
         // Assert
@@ -173,7 +173,7 @@ public sealed class GooglePlacesServiceTests
         var service = CreateService();
 
         // Act
-        var results = await service.SearchAsync(new AddressSearchRequest { Query = "lade", Limit = null })
+        var results = await service.Search(new AddressSearchRequest { Query = "lade", Limit = null })
             .CollectAsync();
 
         // Assert

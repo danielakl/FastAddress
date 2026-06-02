@@ -13,5 +13,5 @@ public interface IGooglePlacesService
     /// <param name="request">Requested search parameters.</param>
     /// <param name="ct">Cancellation token for canceling the ongoing operation.</param>
     /// <returns>Address search results.</returns>
-    IAsyncEnumerable<AddressSearchResult> SearchAsync(AddressSearchRequest request, CancellationToken ct = default);
+    IAsyncEnumerable<AddressSearchResult> Search(AddressSearchRequest request, CancellationToken ct = default);
 }
