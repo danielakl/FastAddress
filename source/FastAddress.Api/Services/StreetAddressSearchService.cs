@@ -28,7 +28,7 @@ internal sealed partial class StreetAddressSearchService(
         ArgumentNullException.ThrowIfNull(query);
 
         var hits = await ReadCacheAsync(query, ct);
-        if (IsCacheHit(hits, query.Limit))
+        if (IsCacheHit(hits))
         {
             foreach (var hit in hits.Take(query.Limit))
             {
@@ -90,23 +90,20 @@ internal sealed partial class StreetAddressSearchService(
         }
     }
 
-    private bool IsCacheHit(IReadOnlyList<StreetAddressMatch> hits, int limit)
+    private bool IsCacheHit(IReadOnlyList<StreetAddressMatch> hits)
     {
         if (hits.Count == 0)
         {
             return false;
         }
 
-        var options = optionsMonitor.CurrentValue;
-        var top = hits[0].Similarity;
-        if (top >= options.ExactShortCircuit)
-        {
-            return true; // A single near-exact match is enough.
-        }
-
-        return top >= options.ConfidenceThreshold
-            && hits.Count >= Math.Min(limit, options.MinConfidentResults);
+        // Trust the cache when the best match clears the confidence bar. A specific street address
+        // realistically resolves to only one or two rows, so result count is not a useful gate.
+        return hits[0].Similarity >= optionsMonitor.CurrentValue.ConfidenceThreshold;
     }
+
+    private static bool IsStreetAddress(AddressSearchResult result) =>
+        result.Types.Any(PlaceTypes.IsStreetAddressType);
 
     private static AddressSearchRequest ToVendorRequest(SearchStreetAddressQuery query) =>
         new() { Query = query.Text, Limit = query.Limit };
