@@ -8,7 +8,7 @@ namespace FastAddress.Api.Tests.Google;
 internal static class PlacesBuilders
 {
     public static PlacePrediction Prediction(string placeId) =>
-        new() { Place = $"places/{placeId}", PlaceId = placeId };
+        new() { PlaceId = placeId };
 
     public static AutocompleteResponse Autocomplete(params PlacePrediction?[] predictions) =>
         new() { Suggestions = predictions.Select(p => new Suggestion { PlacePrediction = p }).ToList() };
