@@ -24,9 +24,10 @@ public sealed record SearchStreetAddressDto : IValidatable<SearchStreetAddressDt
     public int? Limit { get; init; }
 
     /// <summary>
-    /// Point used to bias ranking toward nearby results. It never filters results, only reorders them.
+    /// Optional point used to bias ranking toward nearby results. It never filters results, only reorders
+    /// them. When omitted, ranking falls back to pure text similarity.
     /// </summary>
-    public required Point? LocationBias { get; init; }
+    public Point? LocationBias { get; init; }
 
     /// <inheritdoc/>
     public SearchStreetAddressDto WithCleaning()
@@ -47,8 +48,7 @@ public sealed record SearchStreetAddressDto : IValidatable<SearchStreetAddressDt
             v => v.RuleFor(dto => dto.Address).NotEmpty().MaximumLength(AddressMaxLength),
             v => v.RuleFor(dto => dto.Limit).NotNull().InclusiveBetween(MinLimit, MaxLimit),
             v => v.RuleFor(dto => dto.LocationBias)
-                .NotEmpty()
-                .Must(SpatialHelper.IsValidPoint)
+                .Must(point => point is null || SpatialHelper.IsValidPoint(point))
                 .WithMessage("'{PropertyName}' must be a valid point."),
         };
     }

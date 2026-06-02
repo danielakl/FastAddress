@@ -1,10 +1,13 @@
 using FastAddress.Sdk.Dto;
 using FastAddress.Sdk.Extensions;
+using FastAddress.Sdk.Helpers;
 using FastAddress.TestUtilities;
 
 using FluentValidation;
 using FluentValidation.Results;
 using FluentValidation.TestHelper;
+
+using NetTopologySuite.Geometries;
 
 namespace FastAddress.Sdk.Tests.Extensions;
 
@@ -16,8 +19,9 @@ public sealed class IValidatableExtensionsTests
     [Fact]
     public void CleanAndValidate_InvalidDto_HasValidationErrorsForAddressAndLocationBias()
     {
-        // Arrange
-        var dto = new SearchStreetAddressDto { Address = null, Limit = null, LocationBias = null };
+        // Arrange — empty address and a non-finite bias (a supplied point must still be valid).
+        var nonFinite = new Point(new Coordinate(double.NaN, 63.0)) { SRID = SpatialHelper.Srid };
+        var dto = new SearchStreetAddressDto { Address = null, Limit = null, LocationBias = nonFinite };
 
         // Act
         ValidationResult validationResult = dto.CleanAndValidate();

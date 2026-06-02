@@ -89,10 +89,21 @@ public sealed class SearchStreetAddressDtoTests
     }
 
     [Fact]
-    public void CleanAndValidate_NullLocationBias_IsInvalid()
+    public void CleanAndValidate_NullLocationBias_IsValid()
     {
-        // Arrange
+        // Arrange — LocationBias is optional; omitting it falls back to pure text-similarity ranking.
         var dto = new SearchStreetAddressDto { Address = "Lade alle 77", Limit = 5, LocationBias = null };
+
+        // Act + Assert
+        Assert.True(dto.CleanAndValidate().IsValid);
+    }
+
+    [Fact]
+    public void CleanAndValidate_NonFiniteLocationBias_IsInvalid()
+    {
+        // Arrange — a supplied point must still be a valid, finite coordinate.
+        var nonFinite = new Point(new Coordinate(double.NaN, 63.0)) { SRID = SpatialHelper.Srid };
+        var dto = new SearchStreetAddressDto { Address = "Lade alle 77", Limit = 5, LocationBias = nonFinite };
 
         // Act + Assert
         Assert.False(dto.CleanAndValidate().IsValid);
