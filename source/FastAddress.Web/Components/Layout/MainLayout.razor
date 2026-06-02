@@ -1,23 +1,27 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+<div class="flex min-h-screen flex-col">
+    <header class="border-b border-line bg-panel/80 backdrop-blur">
+        <div class="mx-auto flex w-full max-w-3xl items-center gap-3 px-6 py-4">
+            <span class="grid size-8 place-items-center rounded-lg bg-accent font-mono text-sm font-semibold text-white">FA</span>
+            <div class="leading-tight">
+                <a href="" class="block text-base font-semibold tracking-tight text-ink no-underline">FastAddress</a>
+                <span class="text-xs text-muted">Street address search demo</span>
+            </div>
+            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank"
+               class="ml-auto text-sm text-muted underline-offset-4 hover:text-accent hover:underline">About</a>
         </div>
+    </header>
 
-        <article class="content px-4">
-            @Body
-        </article>
+    <main class="flex-1">
+        @Body
     </main>
 </div>
 
-<div id="blazor-error-ui" data-nosnippet>
+@* Shown by the Blazor framework on an unhandled circuit error (it sets inline display:block, overriding `hidden`). *@
+<div id="blazor-error-ui" data-nosnippet
+     class="fixed bottom-0 left-0 z-50 hidden w-full items-center gap-3 bg-yellow-100 px-5 py-2.5 text-sm text-ink shadow-lg">
     An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
+    <a href="." class="font-medium text-accent underline underline-offset-4">Reload</a>
+    <span class="absolute right-3 top-2 cursor-pointer">🗙</span>
 </div>
