@@ -124,7 +124,8 @@ internal sealed partial class StreetAddressSearchService(
             PlaceId = result.PlaceId,
             // Prefer the derived street line; fall back to Google's formatted address when absent.
             StreetLine = upsert?.StreetLine ?? result.ShortFormattedAddress,
-            Location = result.Location,
+            // Use the precision-rounded location so a miss and a later cache hit agree on coordinates.
+            Location = upsert?.Location ?? SpatialHelper.MakePrecise(result.Location),
             Score = 1d / (result.OrderScore + 1),
             IsCacheHit = false,
         };
