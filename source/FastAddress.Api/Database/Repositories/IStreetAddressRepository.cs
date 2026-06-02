@@ -18,13 +18,11 @@ public interface IStreetAddressRepository
     /// <param name="text">The query text.</param>
     /// <param name="locationBias">Optional point used to reorder results toward nearby matches.</param>
     /// <param name="limit">Maximum number of matches to return.</param>
-    /// <param name="ct">Cancellation token for canceling the ongoing operation.</param>
     /// <returns>Matches ordered by proximity-boosted relevance, each carrying its raw similarity.</returns>
     IAsyncEnumerable<StreetAddressMatch> Search(
         string text,
         Point? locationBias,
-        int limit,
-        CancellationToken ct = default);
+        int limit);
 
     /// <summary>
     /// Idempotently upsert a street address keyed on its unique Google place ID.

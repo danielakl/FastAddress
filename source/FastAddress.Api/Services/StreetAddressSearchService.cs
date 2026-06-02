@@ -57,12 +57,12 @@ internal sealed partial class StreetAddressSearchService(
     }
 
     private async Task<IReadOnlyList<StreetAddressMatch>> ReadCacheAsync(
-        SearchStreetAddressQuery query, CancellationToken ct)
+        SearchStreetAddressQuery query, CancellationToken ct = default)
     {
         try
         {
             var matches = new List<StreetAddressMatch>();
-            await foreach (var match in addressRepo.Search(query.Text, query.LocationBias, query.Limit, ct))
+            await foreach (var match in addressRepo.Search(query.Text, query.LocationBias, query.Limit).WithCancellation(ct))
             {
                 matches.Add(match);
             }

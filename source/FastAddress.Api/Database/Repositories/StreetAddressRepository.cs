@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Text;
 
 using FastAddress.Api.Models;
 using FastAddress.Api.Options;
@@ -18,29 +19,16 @@ internal sealed class StreetAddressRepository(
     FastAddressDbContext context,
     IOptionsMonitor<AddressSearchOptions> optionsMonitor) : IStreetAddressRepository
 {
-    /// <summary>How many candidates to pull per requested result before the in-memory proximity re-rank.</summary>
-    private const int CandidateMultiplier = 4;
-
-    /// <summary>Shortest normalized query that activates prefix (ILike) matching; below this, single
-    /// characters would match nearly everything.</summary>
-    private const int MinPrefixMatchLength = 3;
-
-    /// <summary>Effective similarity granted to a prefix match so an exact-start hit is trusted as a
-    /// confident cache hit even when its raw trigram score is low. Comfortably exceeds the default
-    /// confidence threshold (0.50).</summary>
-    private const double PrefixMatchSimilarity = 0.95;
-
     /// <inheritdoc/>
-    public async IAsyncEnumerable<StreetAddressMatch> Search(
+    public IAsyncEnumerable<StreetAddressMatch> Search(
         string text,
         Point? locationBias,
-        int limit,
-        [EnumeratorCancellation] CancellationToken ct = default)
+        int limit)
     {
         var normalized = text.NormalizeSingleLine(toUpperCase: true);
         if (string.IsNullOrWhiteSpace(normalized))
         {
-            yield break;
+            return AsyncEnumerable.Empty<StreetAddressMatch>();
         }
 
         var options = optionsMonitor.CurrentValue;
@@ -49,52 +37,34 @@ internal sealed class StreetAddressRepository(
             ? context.Clock.GetCurrentInstant() - maxAge
             : (Instant?)null;
 
-        // Two candidate gates: the GIN trigram filter for fuzzy matches, plus an ILike prefix match
-        // (for queries long enough to be selective) so exact-start hits surface before they reach the
-        // similarity threshold. Pull an extra candidate buffer, then re-rank by the proximity
-        // composite in memory so we stay robust against Npgsql translation limits on the decay arithmetic.
-        var usePrefix = normalized.Length >= MinPrefixMatchLength;
-        var prefixPattern = normalized + "%";
+        // Two filter gates: GIN trigram filter for fuzzy matches, and an ILike prefix match
+        // so exact-start hits surface before they reach the similarity threshold.
+        var prefixPattern = new StringBuilder(normalized)
+                .Replace("%", string.Empty)
+                .Replace("_", string.Empty)
+                .Replace("[", string.Empty)
+                .Replace("]", string.Empty)
+                .Replace("^", string.Empty)
+                .Append('%').ToString();
 
-        var gated = context.StreetAddresses
+        return context.StreetAddresses
             .AsNoTracking()
-            .Where(a => cutoff == null || a.LastRefreshed >= cutoff);
-
-        gated = usePrefix
-            ? gated.Where(a => EF.Functions.TrigramsAreSimilar(a.SearchText!, normalized)
-                || EF.Functions.ILike(a.SearchText!, prefixPattern))
-            : gated.Where(a => EF.Functions.TrigramsAreSimilar(a.SearchText!, normalized));
-
-        var candidates = await gated
-            .Select(a => new Candidate
+            .Where(sa => cutoff == null || sa.LastRefreshed >= cutoff)
+            .Select(sa => new Candidate
             {
-                Entity = a,
-                TextScore = EF.Functions.TrigramsSimilarity(a.SearchText!, normalized),
-                IsPrefixMatch = usePrefix && EF.Functions.ILike(a.SearchText!, prefixPattern),
-                DistanceMeters = locationBias == null || a.Location == null ? null : a.Location.Distance(locationBias),
+                Entity = sa,
+                TextScore = EF.Functions.TrigramsSimilarity(sa.SearchText!, normalized),
+                PrefixScore = (double)normalized.Length / sa.SearchText!.Length,
+                IsPrefixMatch = EF.Functions.ILike(sa.SearchText!, prefixPattern),
+                DistanceScore = locationBias == null || sa.Location == null ? 0 :  sa.Location.Distance(locationBias) / options.BiasScaleMeters,
             })
             .Where(c => c.TextScore >= minSimilarity || c.IsPrefixMatch)
-            .OrderByDescending(c => c.IsPrefixMatch)
-            .ThenByDescending(c => c.TextScore)
-            .Take(limit * CandidateMultiplier)
-            .ToListAsync(ct);
-
-        // A prefix match is a strong signal regardless of its raw trigram score: grant it a high
-        // effective similarity so it both ranks up and clears the cache-hit confidence bar.
-        var ranked = candidates
-            .Select(c => new
-            {
-                c.Entity,
-                Score = c.IsPrefixMatch ? Math.Max(c.TextScore, PrefixMatchSimilarity) : c.TextScore,
-                c.DistanceMeters,
-            })
-            .OrderByDescending(c => BoostedScore(c.Score, c.DistanceMeters, options))
-            .Take(limit);
-
-        foreach (var candidate in ranked)
-        {
-            yield return new StreetAddressMatch { StreetAddress = candidate.Entity, Similarity = candidate.Score };
-        }
+            .OrderByDescending(c => Math.Max(c.TextScore, c.PrefixScore))
+            .ThenByDescending(c => c.DistanceScore)
+            .ThenByDescending(c => c.Entity.Id)
+            .Take(limit)
+            .Select(c => new StreetAddressMatch { StreetAddress = c.Entity, Similarity = c.TextScore })
+            .AsAsyncEnumerable();
     }
 
     /// <inheritdoc/>
@@ -125,27 +95,13 @@ internal sealed class StreetAddressRepository(
         await context.SaveChangesAsync(ct);
     }
 
-    /// <summary>
-    /// Soft proximity boost: 1.0 at the bias point, decaying toward 0 with distance. Far matches
-    /// survive, near ones rank up. Drives ordering only — never returned as the result score.
-    /// </summary>
-    private static double BoostedScore(double textScore, double? distanceMeters, AddressSearchOptions options)
-    {
-        if (distanceMeters is not { } distance)
-        {
-            return textScore;
-        }
-
-        var proximity = 1d / (1d + distance / options.BiasScaleMeters);
-        return textScore * (1d + options.BiasWeight * proximity);
-    }
-
     /// <summary>Intermediate projection: the materialized candidate plus its raw scoring inputs.</summary>
     private sealed class Candidate
     {
         public required Entities.StreetAddress Entity { get; init; }
         public required double TextScore { get; init; }
+        public required double PrefixScore { get; init; }
         public required bool IsPrefixMatch { get; init; }
-        public required double? DistanceMeters { get; init; }
+        public required double DistanceScore { get; init; }
     }
 }
