@@ -21,7 +21,6 @@ public sealed class AddressControllerTests
             StreetLine = streetLine,
             Location = GeoTestData.Point(10.0, 63.0),
             Score = 1d,
-            IsCacheHit = true,
         };
 
     private static SearchStreetAddressDto SearchDto(string? address = "Lade alle 77", int? limit = 5) =>

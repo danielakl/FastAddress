@@ -1,15 +1,9 @@
 using FastAddress.Api.Database.Entities;
 using FastAddress.Api.Database.Repositories;
+using FastAddress.Api.Events;
 using FastAddress.Api.Models;
-using FastAddress.Api.Options;
 using FastAddress.Api.Services;
-using FastAddress.Api.Vendors.Contracts;
-using FastAddress.Api.Vendors.Google.Places.Models;
-using FastAddress.Api.Vendors.Models;
 using FastAddress.TestUtilities;
-
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 
 using NetTopologySuite.Geometries;
 
@@ -19,136 +13,66 @@ namespace FastAddress.Api.Tests.Services;
 
 public sealed class StreetAddressSearchServiceTests
 {
-    private readonly IStreetAddressRepository repository = Substitute.For<IStreetAddressRepository>();
-    private readonly IGooglePlacesService places = Substitute.For<IGooglePlacesService>();
-    private readonly IOptionsMonitor<AddressSearchOptions> options = Substitute.For<IOptionsMonitor<AddressSearchOptions>>();
+    private readonly IStreetAddressRepository _streetAddressRepo = Substitute.For<IStreetAddressRepository>();
+    private readonly IDomainEventPublisher _eventPublisher = Substitute.For<IDomainEventPublisher>();
 
-    private readonly StreetAddressSearchService service;
+    private readonly StreetAddressSearchService _streetAddressSearchService;
 
-    public StreetAddressSearchServiceTests()
-    {
-        options.CurrentValue.Returns(new AddressSearchOptions());
-        service = new StreetAddressSearchService(
-            repository, places, options, NullLogger<StreetAddressSearchService>.Instance);
-    }
+    public StreetAddressSearchServiceTests() =>
+        _streetAddressSearchService = new StreetAddressSearchService(_streetAddressRepo, _eventPublisher);
 
-    private static SearchStreetAddressQuery Query() =>
-        new() { Text = "Lade alle 77", Limit = 5, LocationBias = null };
+    private static SearchStreetAddressQuery Query(int limit = 5) =>
+        new() { Text = "Lade alle 77", Limit = limit, LocationBias = null };
 
-    private static StreetAddressMatch Match(double similarity) =>
+    // Every field a test asserts on is a parameter, so the expectation is visible in the test itself.
+    private static StreetAddressMatch Match(
+        string placeId = "place-x",
+        double similarity = 0.5,
+        string streetLine = "Some street",
+        string? postalCode = null,
+        string? postalTown = null) =>
         new()
         {
             StreetAddress = new StreetAddress
             {
-                GooglePlaceId = "place-cache",
-                StreetLine = "Lade alle 77",
-                PostalCode = "7041",
-                PostalTown = "Trondheim",
+                GooglePlaceId = placeId,
+                StreetLine = streetLine,
+                PostalCode = postalCode,
+                PostalTown = postalTown,
                 Location = GeoTestData.Point(10.0, 63.0),
             },
             Similarity = similarity,
         };
 
-    private static AddressSearchResult GoogleResult(string placeId, int orderScore, IReadOnlyList<string>? types = null) =>
-        new()
-        {
-            PlaceId = placeId,
-            OrderScore = orderScore,
-            ShortFormattedAddress = "Lade alle 77 a, Trondheim",
-            Location = GeoTestData.Point(10.46, 63.44),
-            Types = types ?? ["street_address"],
-            AddressComponents =
-            [
-                new AddressComponent { LongText = "Lade alle", ShortText = "Lade alle", Types = [AddressComponentTypes.Route] },
-                new AddressComponent { LongText = "77 a", ShortText = "77 a", Types = [AddressComponentTypes.StreetNumber] },
-                new AddressComponent { LongText = "7041", ShortText = "7041", Types = [AddressComponentTypes.PostalCode] },
-                new AddressComponent { LongText = "Trondheim", ShortText = "Trondheim", Types = [AddressComponentTypes.PostalTown] },
-            ],
-        };
-
-    private void GivenCacheReturns(params StreetAddressMatch[] matches) =>
-        repository.Search(Arg.Any<string>(), Arg.Any<Point?>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+    private void MockSearchResults(params StreetAddressMatch[] matches) =>
+        _streetAddressRepo.Search(Arg.Any<string>(), Arg.Any<Point?>(), Arg.Any<int>())
             .Returns(matches.AsAsyncEnumerable());
 
-    private void GivenGoogleReturns(params AddressSearchResult[] results) =>
-        places.Search(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>())
-            .Returns(results.AsAsyncEnumerable());
-
     [Fact]
-    public async Task Search_ConfidentCacheHit_DoesNotCallGoogle()
+    public async Task Search_StreamsCacheMatchesAsEntries()
     {
-        // Arrange — a single near-exact match clears the short-circuit threshold.
-        GivenCacheReturns(Match(0.95));
+        // Arrange
+        MockSearchResults(
+            Match(placeId: "place-0", similarity: 0.9, streetLine: "Lade alle 77"),
+            Match(placeId: "place-1", similarity: 0.6, streetLine: "Lade alle 79"));
 
         // Act
-        var results = await service.Search(Query()).CollectAsync();
+        var results = await _streetAddressSearchService.Search(Query()).CollectAsync();
 
-        // Assert
-        Assert.Single(results);
-        Assert.True(results[0].IsCacheHit);
-        places.DidNotReceive().Search(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>());
+        // Assert - each entry is projected straight from its database row.
+        Assert.Equal(new[] { "place-0", "place-1" }, results.Select(r => r.PlaceId));
+        Assert.Equal(new[] { "Lade alle 77", "Lade alle 79" }, results.Select(r => r.StreetLine));
+        Assert.Equal(0.9, results[0].Score);
     }
 
     [Fact]
-    public async Task Search_SingleMatchAboveConfidence_ServesFromCacheRegardlessOfCount()
+    public async Task Search_ProjectsPostalCodeAndTown()
     {
-        // Arrange — one match at 0.6 clears the 0.5 confidence bar even though only a single row exists
-        // (the removed result-count gate would previously have forced a Google call here).
-        GivenCacheReturns(Match(0.6));
+        // Arrange
+        MockSearchResults(Match(postalCode: "7041", postalTown: "Trondheim"));
 
         // Act
-        var results = await service.Search(Query()).CollectAsync();
-
-        // Assert
-        Assert.True(Assert.Single(results).IsCacheHit);
-        places.DidNotReceive().Search(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task Search_CacheMiss_DropsNonStreetAddressResults()
-    {
-        // Arrange — Google returns a bare locality alongside a street address; only the latter is usable.
-        GivenCacheReturns();
-        GivenGoogleReturns(
-            GoogleResult("locality-0", orderScore: 0, types: ["locality"]),
-            GoogleResult("street-1", orderScore: 1));
-
-        // Act
-        var results = await service.Search(Query()).CollectAsync();
-
-        // Assert
-        Assert.Equal("street-1", Assert.Single(results).PlaceId);
-        await repository.DidNotReceive().UpsertByPlaceIdAsync(
-            "locality-0", Arg.Any<StreetAddressUpsert>(), Arg.Any<CancellationToken>());
-        await repository.Received(1).UpsertByPlaceIdAsync(
-            "street-1", Arg.Any<StreetAddressUpsert>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task Search_CacheMiss_CallsGoogleAndUpsertsEachResult()
-    {
-        // Arrange — no cached matches forces the Google fallback.
-        GivenCacheReturns();
-        GivenGoogleReturns(GoogleResult("place-0", 0), GoogleResult("place-1", 1));
-
-        // Act
-        var results = await service.Search(Query()).CollectAsync();
-
-        // Assert
-        Assert.Equal(2, results.Count);
-        Assert.All(results, r => Assert.False(r.IsCacheHit));
-        await repository.Received(2).UpsertByPlaceIdAsync(
-            Arg.Any<string>(), Arg.Any<StreetAddressUpsert>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task Search_CacheHit_ProjectsPostalCodeAndTown()
-    {
-        // Arrange — a confident cached row carries postal data through to the entry.
-        GivenCacheReturns(Match(0.95));
-
-        // Act
-        var entry = Assert.Single(await service.Search(Query()).CollectAsync());
+        var entry = Assert.Single(await _streetAddressSearchService.Search(Query()).CollectAsync());
 
         // Assert
         Assert.Equal("7041", entry.PostalCode);
@@ -156,51 +80,47 @@ public sealed class StreetAddressSearchServiceTests
     }
 
     [Fact]
-    public async Task Search_GoogleResult_ProjectsPostalCodeAndTownFromComponents()
+    public async Task Search_PublishesEventWithStreamedMatchCount()
     {
-        // Arrange — cache miss; postal components from Google flow into the entry.
-        GivenCacheReturns();
-        GivenGoogleReturns(GoogleResult("place-0", 0));
+        // Arrange - two cached rows for this query.
+        var query = Query(limit: 5);
+        MockSearchResults(Match(placeId: "place-0"), Match(placeId: "place-1"));
 
         // Act
-        var entry = Assert.Single(await service.Search(Query()).CollectAsync());
+        await _streetAddressSearchService.Search(query).CollectAsync();
 
-        // Assert
-        Assert.Equal("7041", entry.PostalCode);
-        Assert.Equal("Trondheim", entry.PostalTown);
+        // Assert - the background worker is handed the query and the count that streamed.
+        _eventPublisher.Received(1).TryPublish(
+            Arg.Is<AddressSearchPerformed>(e => e.MatchCount == 2 && e.Query == query));
     }
 
     [Fact]
-    public async Task Search_CacheMiss_ForwardsLocationBiasToGoogle()
+    public async Task Search_NoMatches_PublishesEventWithZeroCount()
     {
-        // Arrange — a bias point on the query must reach the vendor request, not be dropped.
-        var bias = GeoTestData.Point(10.4, 63.4);
-        var query = new SearchStreetAddressQuery { Text = "Lade alle 77", Limit = 5, LocationBias = bias };
-        GivenCacheReturns();
-        GivenGoogleReturns(GoogleResult("place-0", 0));
+        // Arrange - a cold cache yields nothing but still triggers a background fetch.
+        MockSearchResults();
 
         // Act
-        await service.Search(query).CollectAsync();
+        var results = await _streetAddressSearchService.Search(Query()).CollectAsync();
 
         // Assert
-        places.Received(1).Search(
-            Arg.Is<AddressSearchRequest>(r => r.LocationBias == bias),
-            Arg.Any<CancellationToken>());
+        Assert.Empty(results);
+        _eventPublisher.Received(1).TryPublish(Arg.Is<AddressSearchPerformed>(e => e.MatchCount == 0));
     }
 
     [Fact]
-    public async Task Search_CacheReadThrows_FallsThroughToGoogle()
+    public async Task Search_CallerStopsEarly_StillPublishesEvent()
     {
-        // Arrange — the DB read fails; the service should degrade to Google rather than throw.
-        repository.Search(Arg.Any<string>(), Arg.Any<Point?>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .Returns(_ => throw new InvalidOperationException("db down"));
-        GivenGoogleReturns(GoogleResult("place-0", 0));
+        // Arrange
+        MockSearchResults(Match(placeId: "place-0"), Match(placeId: "place-1"));
 
-        // Act
-        var results = await service.Search(Query()).CollectAsync();
+        // Act - consume only the first entry, then abandon the stream.
+        await foreach (var _ in _streetAddressSearchService.Search(Query()))
+        {
+            break;
+        }
 
-        // Assert
-        Assert.Single(results);
-        places.Received(1).Search(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>());
+        // Assert - the finally publishes even though enumeration stopped early.
+        _eventPublisher.Received(1).TryPublish(Arg.Any<AddressSearchPerformed>());
     }
 }

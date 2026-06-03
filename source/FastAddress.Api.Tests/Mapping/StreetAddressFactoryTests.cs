@@ -42,6 +42,7 @@ public sealed class StreetAddressFactoryTests
 
         // Assert
         Assert.NotNull(upsert);
+        Assert.Equal("place-1", upsert.GooglePlaceId);
         Assert.Equal("Lade alle 77 a", upsert.StreetLine);
         Assert.Equal("LADE ALLE 77 A", upsert.SearchText);
         Assert.Equal("7041", upsert.PostalCode);

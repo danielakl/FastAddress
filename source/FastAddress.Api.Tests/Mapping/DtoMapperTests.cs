@@ -15,7 +15,6 @@ public sealed class DtoMapperTests
             PostalTown = "Trondheim",
             Location = GeoTestData.Point(10.0, 63.0),
             Score = score,
-            IsCacheHit = true,
         };
 
     [Fact]

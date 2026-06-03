@@ -25,10 +25,10 @@ public interface IStreetAddressRepository
         int limit);
 
     /// <summary>
-    /// Idempotently upsert a street address keyed on its unique Google place ID.
+    /// Idempotently upsert a batch of street addresses, each keyed on its unique
+    /// <see cref="StreetAddressUpsert.GooglePlaceId"/>, in a single round-trip.
     /// </summary>
-    /// <param name="googlePlaceId">The unique upsert key.</param>
-    /// <param name="address">The address payload to insert or update.</param>
+    /// <param name="addresses">The address payloads to insert or update.</param>
     /// <param name="ct">Cancellation token for canceling the ongoing operation.</param>
-    Task UpsertByPlaceIdAsync(string googlePlaceId, StreetAddressUpsert address, CancellationToken ct = default);
+    Task UpsertRangeAsync(IReadOnlyList<StreetAddressUpsert> addresses, CancellationToken ct = default);
 }

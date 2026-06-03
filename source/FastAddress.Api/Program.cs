@@ -1,5 +1,6 @@
 using FastAddress.Api.Database;
 using FastAddress.Api.Database.Repositories;
+using FastAddress.Api.Events.Extensions;
 using FastAddress.Api.Options;
 using FastAddress.Api.Services;
 using FastAddress.Api.Vendors.Extensions;
@@ -35,6 +36,8 @@ services.AddGoogleApiContract(configuration);
 services.AddSingleton<IClock>(SystemClock.Instance);
 services.AddScoped<IStreetAddressRepository, StreetAddressRepository>();
 services.AddScoped<IStreetAddressSearchService, StreetAddressSearchService>();
+
+services.AddDomainEventSystem();
 
 services.AddDbContext<FastAddressDbContext>((sp, opts) =>
 {

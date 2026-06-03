@@ -34,6 +34,7 @@ internal static class StreetAddressFactory
 
         return new StreetAddressUpsert
         {
+            GooglePlaceId = result.PlaceId,
             StreetLine = streetLine,
             PostalCode = GetComponent(AddressComponentTypes.PostalCode, result),
             PostalTown = GetComponent(AddressComponentTypes.PostalTown, result)

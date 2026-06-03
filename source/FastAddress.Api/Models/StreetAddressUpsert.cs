@@ -7,6 +7,9 @@ namespace FastAddress.Api.Models;
 /// </summary>
 public sealed record StreetAddressUpsert
 {
+    /// <summary>Unique Google place ID.</summary>
+    public required string GooglePlaceId { get; init; }
+
     /// <summary>Street line composed of route and street number.</summary>
     /// <example>Lade Allé 77 A</example>
     public required string StreetLine { get; init; }

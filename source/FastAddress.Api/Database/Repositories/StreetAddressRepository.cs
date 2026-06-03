@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using System.Text;
 
 using FastAddress.Api.Models;
@@ -19,6 +18,9 @@ internal sealed class StreetAddressRepository(
     FastAddressDbContext context,
     IOptionsMonitor<AddressSearchOptions> optionsMonitor) : IStreetAddressRepository
 {
+    // Skip re-writing a row that was refreshed this recently.
+    private static readonly Duration RecentRefreshWindow = Duration.FromMinutes(5);
+
     /// <inheritdoc/>
     public IAsyncEnumerable<StreetAddressMatch> Search(
         string text,
@@ -54,13 +56,13 @@ internal sealed class StreetAddressRepository(
             {
                 Entity = sa,
                 TextScore = EF.Functions.TrigramsSimilarity(sa.SearchText!, normalized),
-                PrefixScore = (double)normalized.Length / sa.SearchText!.Length,
+                PrefixScore = normalized.Length > sa.SearchText!.Length ? 0 : (double)normalized.Length / sa.SearchText!.Length,
                 IsPrefixMatch = EF.Functions.ILike(sa.SearchText!, prefixPattern),
                 DistanceScore = locationBias == null || sa.Location == null ? 0 :  sa.Location.Distance(locationBias) / options.BiasScaleMeters,
             })
             .Where(c => c.TextScore >= minSimilarity || c.IsPrefixMatch)
-            .OrderByDescending(c => Math.Max(c.TextScore, c.PrefixScore))
-            .ThenByDescending(c => c.DistanceScore)
+            .OrderByDescending(c => c.TextScore)
+            .ThenByDescending(c => c.PrefixScore)
             .ThenByDescending(c => c.Entity.Id)
             .Take(limit)
             .Select(c => new StreetAddressMatch { StreetAddress = c.Entity, Similarity = c.TextScore })
@@ -68,28 +70,52 @@ internal sealed class StreetAddressRepository(
     }
 
     /// <inheritdoc/>
-    public async Task UpsertByPlaceIdAsync(string googlePlaceId, StreetAddressUpsert address, CancellationToken ct = default)
+    public async Task UpsertRangeAsync(IReadOnlyList<StreetAddressUpsert> addresses, CancellationToken ct = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(googlePlaceId);
-        ArgumentNullException.ThrowIfNull(address);
+        ArgumentNullException.ThrowIfNull(addresses);
 
-        var existing = await context.StreetAddresses
-            .SingleOrDefaultAsync(a => a.GooglePlaceId == googlePlaceId, ct);
+        // Drop null entries and collapse duplicate place IDs within the batch.
+        var deduped = addresses
+            .OfType<StreetAddressUpsert>()
+            .DistinctBy(a => a.GooglePlaceId)
+            .ToList();
 
-        var isNew = existing is null;
-        existing ??= new Entities.StreetAddress { GooglePlaceId = googlePlaceId };
-
-        existing.StreetLine = address.StreetLine;
-        existing.PostalCode = address.PostalCode;
-        existing.PostalTown = address.PostalTown;
-        existing.Country = address.Country;
-        existing.SearchText = address.SearchText;
-        existing.Location = address.Location;
-        existing.LastRefreshed = context.Clock.GetCurrentInstant();
-
-        if (isNew)
+        if (deduped.Count == 0)
         {
-            context.StreetAddresses.Add(existing);
+            return;
+        }
+
+        var placeIds = deduped.Select(a => a.GooglePlaceId).ToList();
+        var byPlaceId = await context.StreetAddresses
+            .Where(a => placeIds.Contains(a.GooglePlaceId))
+            .ToDictionaryAsync(a => a.GooglePlaceId, ct);
+
+        var now = context.Clock.GetCurrentInstant();
+        var recentCutoff = now - RecentRefreshWindow;
+
+        foreach (var address in deduped)
+        {
+            if (byPlaceId.TryGetValue(address.GooglePlaceId, out var entity))
+            {
+                // Leave recently-refreshed rows untouched rather than bumping them again.
+                if (entity.LastRefreshed >= recentCutoff)
+                {
+                    continue;
+                }
+            }
+            else
+            {
+                entity = new Entities.StreetAddress { GooglePlaceId = address.GooglePlaceId };
+                context.StreetAddresses.Add(entity);
+            }
+
+            entity.StreetLine = address.StreetLine;
+            entity.PostalCode = address.PostalCode;
+            entity.PostalTown = address.PostalTown;
+            entity.Country = address.Country;
+            entity.SearchText = address.SearchText;
+            entity.Location = address.Location;
+            entity.LastRefreshed = now;
         }
 
         await context.SaveChangesAsync(ct);
