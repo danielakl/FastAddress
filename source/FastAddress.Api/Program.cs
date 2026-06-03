@@ -1,14 +1,10 @@
-using FastAddress.Api.Database;
+using FastAddress.Api.Database.Extensions;
+using FastAddress.Api.Database.Options;
 using FastAddress.Api.Database.Repositories;
-using FastAddress.Api.Events.Extensions;
-using FastAddress.Api.Options;
+using FastAddress.Api.Messages.Extensions;
 using FastAddress.Api.Services;
 using FastAddress.Api.Vendors.Extensions;
-using FastAddress.Sdk.Helpers;
 using FastAddress.Sdk.Serialization;
-
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 using NodaTime;
 
@@ -28,35 +24,15 @@ var configuration = builder.Configuration
     .AddUserSecrets<Program>()
     .Build();
 
-services.Configure<DatabaseOptions>(configuration.GetSection(DatabaseOptions.ConfigKey));
 services.Configure<AddressSearchOptions>(configuration.GetSection(AddressSearchOptions.ConfigKey));
 services.AddGoogleApiContract(configuration);
 
 // Add services.
 services.AddSingleton<IClock>(SystemClock.Instance);
+services.AddFastAddressDbContext(configuration);
 services.AddScoped<IStreetAddressRepository, StreetAddressRepository>();
 services.AddScoped<IStreetAddressSearchService, StreetAddressSearchService>();
-
 services.AddDomainEventSystem();
-
-services.AddDbContext<FastAddressDbContext>((sp, opts) =>
-{
-    var databaseOptions = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
-    opts.EnableDetailedErrors(databaseOptions.EnableDetailedErrors)
-        .EnableSensitiveDataLogging(databaseOptions.EnableSensitiveDataLogging)
-        .UseNpgsql(databaseOptions.ConnectionString,
-            npgsqlOpts =>
-            {
-                npgsqlOpts.MigrationsHistoryTable("_migration_history", FastAddressDbContext.SchemaName);
-                npgsqlOpts.UseNetTopologySuite(
-                    SpatialHelper.GeometryFactoryInstance.CoordinateSequenceFactory,
-                    SpatialHelper.PrecisionModelInstance
-                );
-                npgsqlOpts.UseNodaTime();
-                npgsqlOpts.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
-            }
-    );
-});
 
 services.AddHealthChecks();
 services.AddControllers()

@@ -1,6 +1,6 @@
 using NetTopologySuite.Geometries;
 
-namespace FastAddress.Api.Models;
+namespace FastAddress.Api.Database.Models;
 
 /// <summary>
 /// Upsertable street address payload.

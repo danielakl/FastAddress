@@ -1,4 +1,4 @@
-namespace FastAddress.Api.Options;
+namespace FastAddress.Api.Database.Options;
 
 /// <summary>Options for database setup.</summary>
 public sealed record DatabaseOptions

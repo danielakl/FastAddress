@@ -5,7 +5,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace FastAddress.Api.Migrations
+namespace FastAddress.Api.Database.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration

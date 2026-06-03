@@ -1,5 +1,4 @@
-using FastAddress.Api.Database.Entities;
-using FastAddress.Api.Models;
+using FastAddress.Api.Database.Models;
 
 using NetTopologySuite.Geometries;
 

@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace FastAddress.Api.Migrations
+namespace FastAddress.Api.Database.Migrations
 {
     [DbContext(typeof(FastAddressDbContext))]
     partial class FastAddressDbContextModelSnapshot : ModelSnapshot
@@ -26,7 +26,7 @@ namespace FastAddress.Api.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("FastAddress.Api.Database.Entities.StreetAddress", b =>
+            modelBuilder.Entity("FastAddress.Api.Database.Entities.StreetAddressResult", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -89,7 +89,7 @@ namespace FastAddress.Api.Migrations
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SearchText"), "gin");
                     NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("SearchText"), new[] { "gin_trgm_ops" });
 
-                    b.ToTable("street_addresses", "address");
+                    b.ToTable("street_address_results", "address");
                 });
 #pragma warning restore 612, 618
         }

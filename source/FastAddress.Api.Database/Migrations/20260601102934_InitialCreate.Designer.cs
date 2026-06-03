@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace FastAddress.Api.Migrations
+namespace FastAddress.Api.Database.Migrations
 {
     [DbContext(typeof(FastAddressDbContext))]
     [Migration("20260601102934_InitialCreate")]

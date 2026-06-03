@@ -15,7 +15,7 @@ public sealed class FastAddressDbContext : DbContext
 {
     public const string SchemaName = "address";
 
-    public DbSet<StreetAddress> StreetAddresses { get; private set; }
+    public DbSet<StreetAddressResult> StreetAddressResults { get; private set; }
     
     public IClock Clock { get; }
 
@@ -42,23 +42,23 @@ public sealed class FastAddressDbContext : DbContext
         modelBuilder.HasDefaultSchema(SchemaName);
         modelBuilder.HasTrigramExtension();
 
-        var streetAddress = modelBuilder.Entity<StreetAddress>();
-        streetAddress.HasKey(e => e.Id);
-        streetAddress.HasDefaultTimestamps();
+        var streetAddressResult = modelBuilder.Entity<StreetAddressResult>();
+        streetAddressResult.HasKey(e => e.Id);
+        streetAddressResult.HasDefaultTimestamps();
 
-        streetAddress.Property(e => e.Country).HasMaxLength(100);
-        streetAddress.Property(e => e.GooglePlaceId).HasMaxLength(500);
-        streetAddress.Property(e => e.Location).HasGeographyColumnType();
-        streetAddress.Property(e => e.PostalCode).HasMaxLength(20);
-        streetAddress.Property(e => e.PostalTown).HasMaxLength(100);
-        streetAddress.Property(e => e.SearchText).HasMaxLength(250);
-        streetAddress.Property(e => e.StreetLine).HasMaxLength(250);
+        streetAddressResult.Property(e => e.Country).HasMaxLength(100);
+        streetAddressResult.Property(e => e.GooglePlaceId).HasMaxLength(500);
+        streetAddressResult.Property(e => e.Location).HasGeographyColumnType();
+        streetAddressResult.Property(e => e.PostalCode).HasMaxLength(20);
+        streetAddressResult.Property(e => e.PostalTown).HasMaxLength(100);
+        streetAddressResult.Property(e => e.SearchText).HasMaxLength(250);
+        streetAddressResult.Property(e => e.StreetLine).HasMaxLength(250);
 
-        streetAddress.HasIndex(e => e.GooglePlaceId).IsUnique();
-        streetAddress.HasIndex(e => e.Location).HasSpatialIndex();
-        streetAddress.HasIndex(e => e.SearchText).HasTrigramIndex();
+        streetAddressResult.HasIndex(e => e.GooglePlaceId).IsUnique();
+        streetAddressResult.HasIndex(e => e.Location).HasSpatialIndex();
+        streetAddressResult.HasIndex(e => e.SearchText).HasTrigramIndex();
 
-        streetAddress.ToTable("street_addresses");
+        streetAddressResult.ToTable("street_address_results");
     }
 
     /// <inheritdoc/>

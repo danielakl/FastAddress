@@ -7,9 +7,9 @@ using NodaTime;
 namespace FastAddress.Api.Database.Entities;
 
 /// <summary>
-/// Street address entity with support for fuzzy search through <see cref="SearchText"/>.
+/// Street address result entity with support for fuzzy search through <see cref="SearchText"/>.
 /// </summary>
-public sealed class StreetAddress : IEntityTimestamps
+public sealed class StreetAddressResult : IEntityTimestamps
 {
     /// <summary>
     /// Identifier.

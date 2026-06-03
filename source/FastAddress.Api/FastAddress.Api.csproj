@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -7,21 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <!-- EF Core tooling must be referenced by the startup project for `dotnet ef`. -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
-    <PackageReference Include="NetTopologySuite.IO.GeoJSON4STJ" />
-    <PackageReference Include="NodaTime.Serialization.SystemTextJson" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FastAddress.Api.Database\FastAddress.Api.Database.csproj" />
+    <ProjectReference Include="..\FastAddress.Api.Services\FastAddress.Api.Services.csproj" />
     <ProjectReference Include="..\FastAddress.Api.Vendors\FastAddress.Api.Vendors.csproj" />
     <ProjectReference Include="..\FastAddress.Sdk\FastAddress.Sdk.csproj" />
   </ItemGroup>

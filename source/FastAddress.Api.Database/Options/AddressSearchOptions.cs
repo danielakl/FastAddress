@@ -1,6 +1,6 @@
 using NodaTime;
 
-namespace FastAddress.Api.Options;
+namespace FastAddress.Api.Database.Options;
 
 /// <summary>
 /// Tuning knobs for cache-first street address search (fuzzy matching, cache-hit policy, spatial bias).

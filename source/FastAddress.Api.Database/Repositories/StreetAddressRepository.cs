@@ -1,7 +1,7 @@
 using System.Text;
 
-using FastAddress.Api.Models;
-using FastAddress.Api.Options;
+using FastAddress.Api.Database.Models;
+using FastAddress.Api.Database.Options;
 using FastAddress.Sdk.Extensions;
 
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +14,7 @@ using NodaTime;
 namespace FastAddress.Api.Database.Repositories;
 
 /// <inheritdoc/>
-internal sealed class StreetAddressRepository(
+public sealed class StreetAddressRepository(
     FastAddressDbContext context,
     IOptionsMonitor<AddressSearchOptions> optionsMonitor) : IStreetAddressRepository
 {
@@ -49,7 +49,7 @@ internal sealed class StreetAddressRepository(
                 .Replace("^", string.Empty)
                 .Append('%').ToString();
 
-        return context.StreetAddresses
+        return context.StreetAddressResults
             .AsNoTracking()
             .Where(sa => cutoff == null || sa.LastRefreshed >= cutoff)
             .Select(sa => new Candidate
@@ -86,7 +86,7 @@ internal sealed class StreetAddressRepository(
         }
 
         var placeIds = deduped.Select(a => a.GooglePlaceId).ToList();
-        var byPlaceId = await context.StreetAddresses
+        var byPlaceId = await context.StreetAddressResults
             .Where(a => placeIds.Contains(a.GooglePlaceId))
             .ToDictionaryAsync(a => a.GooglePlaceId, ct);
 
@@ -105,8 +105,8 @@ internal sealed class StreetAddressRepository(
             }
             else
             {
-                entity = new Entities.StreetAddress { GooglePlaceId = address.GooglePlaceId };
-                context.StreetAddresses.Add(entity);
+                entity = new Entities.StreetAddressResult { GooglePlaceId = address.GooglePlaceId };
+                context.StreetAddressResults.Add(entity);
             }
 
             entity.StreetLine = address.StreetLine;
@@ -124,7 +124,7 @@ internal sealed class StreetAddressRepository(
     /// <summary>Intermediate projection: the materialized candidate plus its raw scoring inputs.</summary>
     private sealed class Candidate
     {
-        public required Entities.StreetAddress Entity { get; init; }
+        public required Entities.StreetAddressResult Entity { get; init; }
         public required double TextScore { get; init; }
         public required double PrefixScore { get; init; }
         public required bool IsPrefixMatch { get; init; }

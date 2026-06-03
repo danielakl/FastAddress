@@ -14,6 +14,8 @@
     <File Path="global.json" />
     <File Path="nuget.config" />
   </Folder>
+  <Project Path="source\FastAddress.Api.Database\FastAddress.Api.Database.csproj" />
+  <Project Path="source\FastAddress.Api.Services\FastAddress.Api.Services.csproj" />
   <Project Path="source\FastAddress.Api.Tests\FastAddress.Api.Tests.csproj" />
   <Project Path="source\FastAddress.Api.Vendors\FastAddress.Api.Vendors.csproj" />
   <Project Path="source\FastAddress.Api\FastAddress.Api.csproj" />
