@@ -58,6 +58,7 @@ public sealed class FastAddressDbContext : DbContext
         streetAddressResult.Property(e => e.StreetLine).HasMaxLength(250);
 
         streetAddressResult.HasIndex(e => e.GooglePlaceId).IsUnique();
+        streetAddressResult.HasIndex(e => e.LastRefreshed);
         streetAddressResult.HasIndex(e => e.Location).HasSpatialIndex();
         streetAddressResult.HasIndex(e => e.SearchText).HasTrigramIndex();
 
