@@ -23,8 +23,8 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.2" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="10.0.2" />
-    <PackageVersion Include="Refit" Version="10.1.6" />
-    <PackageVersion Include="Refit.HttpClientFactory" Version="10.1.6" />
+    <PackageVersion Include="Refit" Version="10.2.0" />
+    <PackageVersion Include="Refit.HttpClientFactory" Version="10.2.0" />
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageVersion Include="Serilog.Exceptions" Version="8.4.0" />
     <PackageVersion Include="Serilog.Exceptions.Refit" Version="8.4.0" />
