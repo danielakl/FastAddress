@@ -13,8 +13,11 @@ public sealed class AddressSearchOptions
     /// <summary>Candidate floor; also the effective pg_trgm similarity threshold.</summary>
     public double MinSimilarity { get; init; } = 0.30;
 
-    /// <summary>Optional staleness cutoff; <see langword="null"/> means cached rows never expire.</summary>
-    public Duration? MaxReuseAge { get; init; }
+    /// <summary>
+    /// Freshness window for the <c>StreetAddressQuery</c> ledger: a query refreshed within this window
+    /// is served from the database; an older or missing ledger entry triggers a live Google fetch.
+    /// </summary>
+    public Duration MaxReuseAge { get; init; } = Duration.FromDays(90);
 
     /// <summary>Decay scale in metres; the proximity boost roughly halves every <see cref="BiasScaleMeters"/>.</summary>
     public double BiasScaleMeters { get; init; } = 2_000d;
