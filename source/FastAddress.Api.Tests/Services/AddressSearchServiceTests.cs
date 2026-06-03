@@ -90,7 +90,7 @@ public sealed class AddressSearchServiceTests
             .Returns(matches.AsAsyncEnumerable());
 
     private void MockGoogleResults(params GooglePlace[] results) =>
-        _placesService.Search(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>())
+        _placesService.SearchPlaces(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>())
             .Returns(results.AsAsyncEnumerable());
 
     private static async IAsyncEnumerable<GooglePlace> ThrowAfter(GooglePlace first)
@@ -145,7 +145,7 @@ public sealed class AddressSearchServiceTests
         await _addressSearchService.Search(Query("Lade alle")).CollectAsync();
 
         // Assert - A fresh ledger means Google is never consulted and nothing is published.
-        _placesService.DidNotReceive().Search(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>());
+        _placesService.DidNotReceive().SearchPlaces(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>());
         _eventPublisher.DidNotReceive().TryPublish(Arg.Any<IDomainEvent>());
     }
 
@@ -246,7 +246,7 @@ public sealed class AddressSearchServiceTests
         await _addressSearchService.Search(query).CollectAsync();
 
         // Assert
-        _placesService.Received(1).Search(
+        _placesService.Received(1).SearchPlaces(
             Arg.Is<AddressSearchRequest>(r => r.Query == "Lade alle" && r.LocationBias == bias),
             Arg.Any<CancellationToken>());
     }
@@ -254,9 +254,9 @@ public sealed class AddressSearchServiceTests
     [Fact]
     public async Task Search_StaleLedger_StreamFaultsMidway_DoesNotPublish()
     {
-        // Arrange. The Google stream throws after the first result, as a cancelled request would.
+        // Arrange - The Google stream throws after the first result, as a cancelled request would.
         MockMissingLedger(normalizedQuery: "LADE ALLE");
-        _placesService.Search(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>())
+        _placesService.SearchPlaces(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>())
             .Returns(ThrowAfter(EventTestBuilders.GoogleResult("street-0")));
 
         // Act + Assert. The fault propagates and the publish after the loop never runs, so a partial

@@ -55,7 +55,7 @@ public sealed class AddressSearchService(
 
         // Ledger missing or stale: fetch from Google so the caller always gets current data.
         var upserts = new List<StreetAddressUpsert>();
-        await foreach (var result in placesService.Search(ToVendorRequest(query), ct))
+        await foreach (var result in placesService.SearchPlaces(ToVendorRequest(query), ct))
         {
             if (!IsStreetAddress(result))
             {

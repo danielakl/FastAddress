@@ -25,7 +25,7 @@ internal sealed class GooglePlacesService(IPlacesApi places) : IGooglePlacesServ
     private const string PlaceDetailsFields = "id,movedPlaceId,addressComponents,shortFormattedAddress,location,types";
 
     /// <inheritdoc/>
-    public async IAsyncEnumerable<GooglePlace> Search(
+    public async IAsyncEnumerable<GooglePlace> SearchPlaces(
         AddressSearchRequest request,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
