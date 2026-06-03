@@ -29,9 +29,9 @@ public static class ServiceCollectionExtensions
         services.AddHostedService<BackgroundServices.EventDispatcherBackgroundService>();
 
         // One line per event type: scoped handler + keyed dispatch bridge resolved by runtime type.
-        services.AddScoped<IDomainEventHandler<AddressSearchPerformed>, AddressSearchEventHandler>();
-        services.AddKeyedSingleton<IDomainEventDispatch, DomainEventDispatch<AddressSearchPerformed>>(
-            typeof(AddressSearchPerformed));
+        services.AddScoped<IDomainEventHandler<GoogleResultsRetrieved>, PersistGoogleResultsHandler>();
+        services.AddKeyedSingleton<IDomainEventDispatch, DomainEventDispatch<GoogleResultsRetrieved>>(
+            typeof(GoogleResultsRetrieved));
 
         return services;
     }

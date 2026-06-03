@@ -50,14 +50,14 @@ public sealed class SearchStreetAddressDtoTests
     [Fact]
     public void WithCleaning_LocationBias_RoundsToPrecisionModel()
     {
-        // Arrange — a raw, high-precision point that has not been through the precision factory.
+        // Arrange - a raw, high-precision point that has not been through the precision factory.
         var raw = new Point(new Coordinate(10.123456789, 63.987654321)) { SRID = SpatialHelper.Srid };
         var dto = Dto(locationBias: raw);
 
         // Act
         var cleaned = dto.WithCleaning();
 
-        // Assert — rounded to 5 decimal places (~1 m).
+        // Assert - rounded to 5 decimal places (~1 m).
         Assert.Equal(10.12346, cleaned.LocationBias!.X, precision: 5);
         Assert.Equal(63.98765, cleaned.LocationBias!.Y, precision: 5);
     }
@@ -91,7 +91,7 @@ public sealed class SearchStreetAddressDtoTests
     [Fact]
     public void CleanAndValidate_NullLocationBias_IsValid()
     {
-        // Arrange — LocationBias is optional; omitting it falls back to pure text-similarity ranking.
+        // Arrange - LocationBias is optional. Omitting it falls back to pure text-similarity ranking.
         var dto = new SearchStreetAddressDto { Address = "Lade alle 77", Limit = 5, LocationBias = null };
 
         // Act + Assert
@@ -101,7 +101,7 @@ public sealed class SearchStreetAddressDtoTests
     [Fact]
     public void CleanAndValidate_NonFiniteLocationBias_IsInvalid()
     {
-        // Arrange — a supplied point must still be a valid, finite coordinate.
+        // Arrange - a supplied point must still be a valid, finite coordinate.
         var nonFinite = new Point(new Coordinate(double.NaN, 63.0)) { SRID = SpatialHelper.Srid };
         var dto = new SearchStreetAddressDto { Address = "Lade alle 77", Limit = 5, LocationBias = nonFinite };
 

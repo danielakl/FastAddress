@@ -54,7 +54,7 @@ public sealed class SpatialHelperTests
         // Act
         SpatialHelper.MakePrecise(raw);
 
-        // Assert — the original keeps its full precision.
+        // Assert - the original keeps its full precision.
         Assert.Equal(10.123456789, raw.X);
     }
 

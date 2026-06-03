@@ -32,8 +32,8 @@ public static class PropertyBuilderExtensions
     /// </summary>
     /// <remarks>
     /// The default NetTopologySuite mapping is PostGIS <c>geometry</c>, whose <c>ST_Distance</c> is planar
-    /// and returns degrees for SRID 4326. <c>geography</c> is geodetic, so distances come back in metres —
-    /// which the proximity bias requires (§4.5). The column stays GiST-indexable.
+    /// and returns degrees for SRID 4326. <c>geography</c> is geodetic, so distances come back in metres.
+    /// The column stays GiST-indexable.
     /// </remarks>
     /// <param name="builder">The property builder.</param>
     public static PropertyBuilder<Point?> HasGeographyColumnType(this PropertyBuilder<Point?> builder)

@@ -9,7 +9,7 @@ namespace FastAddress.Web.Proxy;
 
 /// <summary>
 /// Same-origin proxy for the FastAddress API. The browser's <c>fetch</c> (with <c>AbortController</c>)
-/// calls these endpoints so search traffic stays same-origin — no CORS, and the upstream API base URL
+/// calls these endpoints so search traffic stays same-origin. No CORS needed, and the upstream API base URL
 /// is never exposed to the client. Forwarding is done through the strongly typed
 /// <see cref="IFastAddressApi"/> Refit client.
 /// </summary>
@@ -26,7 +26,7 @@ public static partial class AddressProxyEndpoints
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        // JSON POST issued by fetch(), not a Blazor form — antiforgery validation does not apply.
+        // JSON POST issued by fetch(), not a Blazor form. Antiforgery validation does not apply.
         endpoints.MapPost(SearchPath, ForwardSearchAsync).DisableAntiforgery();
 
         return endpoints;
@@ -45,7 +45,7 @@ public static partial class AddressProxyEndpoints
         }
         catch (Exception ex) when (ex is ApiException or HttpRequestException)
         {
-            // Upstream unreachable / errored — surface a clean 502 the browser can show in the error modal.
+            // Upstream unreachable / errored. Surface a clean 502 the browser can show in the error modal.
             LogUpstreamFailed(loggerFactory.CreateLogger(typeof(AddressProxyEndpoints)), ex);
             return Results.Json(
                 new { error = "The address service is currently unavailable." },

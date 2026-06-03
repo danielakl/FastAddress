@@ -41,7 +41,7 @@ export async function search(text, latitude, longitude) {
             score: item.score,
         }));
     } catch (error) {
-        // An aborted request was deliberately superseded — not a failure to report.
+        // An aborted request was deliberately superseded. This isn't a failure to report.
         if (error.name === "AbortError") {
             return null;
         }

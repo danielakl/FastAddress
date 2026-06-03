@@ -13,8 +13,7 @@ namespace FastAddress.Sdk.Serialization;
 /// <summary>
 /// The single source of truth for FastAddress JSON serialization. Both the API (server-side
 /// serialization) and the typed <see cref="Api.IFastAddressApi"/> client configure their serializers
-/// through here so requests and responses round-trip identically — camelCase naming, GeoJSON geometry,
-/// and NodaTime values.
+/// through here so requests and responses round-trip identically.
 /// </summary>
 public static class FastAddressJsonOptions
 {

@@ -72,7 +72,7 @@ public sealed class ModelMapperTests
     [Fact]
     public void From_NoRouteOrStreetNumber_ReturnsNull()
     {
-        // Arrange — only a postal code; nothing to build a street line from.
+        // Arrange - Only a postal code; nothing to build a street line from.
         var result = Result(Component("7041", "7041", AddressComponentTypes.PostalCode));
 
         // Act
@@ -85,7 +85,7 @@ public sealed class ModelMapperTests
     [Fact]
     public void From_PremiseWithoutRouteOrStreetNumber_UsesPremiseAsStreetLine()
     {
-        // Arrange — a named premise (e.g. an airport) with no route/number, mirroring the
+        // Arrange - A named premise (e.g. an airport) with no route/number, mirroring the
         // "Trondheim Lufthavn Værnes" case where Google omits street components.
         var result = Result(
             Component("Trondheim Lufthavn Værnes", "Trondheim Lufthavn Værnes", AddressComponentTypes.Premise),
@@ -105,7 +105,7 @@ public sealed class ModelMapperTests
     [Fact]
     public void From_RouteAndPremiseBothPresent_PrefersRouteOverPremise()
     {
-        // Arrange — route+number always win; the premise is only a fallback.
+        // Arrange - route+number always win, the premise is only a fallback.
         var result = Result(
             Component("Lade alle", "Lade alle", AddressComponentTypes.Route),
             Component("77", "77", AddressComponentTypes.StreetNumber),

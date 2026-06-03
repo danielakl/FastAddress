@@ -19,7 +19,7 @@ public sealed class IValidatableExtensionsTests
     [Fact]
     public void CleanAndValidate_InvalidDto_HasValidationErrorsForAddressAndLocationBias()
     {
-        // Arrange — empty address and a non-finite bias (a supplied point must still be valid).
+        // Arrange - Empty address and a non-finite bias (a supplied point must still be valid).
         var nonFinite = new Point(new Coordinate(double.NaN, 63.0)) { SRID = SpatialHelper.Srid };
         var dto = new SearchStreetAddressDto { Address = null, Limit = null, LocationBias = nonFinite };
 

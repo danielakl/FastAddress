@@ -16,7 +16,7 @@ COPY ["nuget.config", "nuget.config"]
 RUN dotnet restore "source/FastAddress.Web/FastAddress.Web.csproj"
 COPY . .
 WORKDIR "/src/source/FastAddress.Web"
-# Alpine SDK image is musl-based — select the matching Tailwind standalone CLI asset.
+# Alpine SDK image is musl-based. Select the matching Tailwind standalone CLI asset.
 RUN dotnet build "./FastAddress.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build -p:TailwindAsset=tailwindcss-linux-x64-musl
 
 FROM build AS publish

@@ -4,7 +4,7 @@
 @source "../Components/**/*.{razor,cs}";
 @source "../Components/**/*.js";
 
-/* Design tokens — a restrained, technical "API console" direction (not a stock template). */
+/* Design tokens: a restrained, technical "API console" direction (not a stock template). */
 @theme {
     --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
     --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;

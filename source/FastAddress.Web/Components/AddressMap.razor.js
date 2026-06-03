@@ -1,4 +1,4 @@
-// Leaflet (OpenStreetMap) map. Default mode is zoom-only — panning is disabled. The .NET component
+// Leaflet (OpenStreetMap) map. Default mode is zoom-only - panning is disabled. The .NET component
 // drives everything through `sync(state)`; the only thing JS reports back is a map click (used while
 // the user is picking a search-location bias).
 
@@ -8,7 +8,7 @@ const TILE_ATTRIBUTION =
 const MAX_TILE_ZOOM = 19;
 const SELECT_ZOOM = 15;
 
-// Selected-address marker (blue) vs. location-bias marker (amber) — visually distinct.
+// Selected-address marker (blue) vs. location-bias marker (amber).
 const ADDRESS_STYLE = { radius: 8, color: "#1f6feb", fillColor: "#1f6feb", fillOpacity: 0.9, weight: 2 };
 const BIAS_STYLE = { radius: 9, color: "#d97706", fillColor: "#f59e0b", fillOpacity: 0.85, weight: 2 };
 

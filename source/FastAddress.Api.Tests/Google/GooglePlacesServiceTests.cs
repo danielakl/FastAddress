@@ -178,7 +178,7 @@ public sealed class GooglePlacesServiceTests
         await service.Search(new AddressSearchRequest { Query = "lade", Limit = null, LocationBias = bias })
             .CollectAsync();
 
-        // Assert — point Y/X map to latitude/longitude, fixed 25km radius.
+        // Assert - Point Y/X map to latitude/longitude, fixed 25km radius.
         await places.Received(1).AutocompleteAsync(
             Arg.Is<AutocompleteRequest>(r => r.LocationBias != null
                 && r.LocationBias.Circle.Center.Latitude == 63.4

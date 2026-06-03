@@ -13,7 +13,7 @@ public static class ModelBuilderExtensions
     /// Enables the <c>pg_trgm</c> PostgreSQL extension.
     /// </summary>
     /// <remarks>
-    /// <c>pg_trgm</c> provides trigram-based text similarity — the <c>%</c> and <c>similarity()</c>
+    /// <c>pg_trgm</c> provides trigram-based text similarity. The <c>%</c> and <c>similarity()</c>
     /// operators and the <c>gin_trgm_ops</c> operator class used by the fuzzy text index. It must be
     /// enabled (the migration emits <c>CREATE EXTENSION</c>) before any trigram index or query works.
     /// </remarks>
