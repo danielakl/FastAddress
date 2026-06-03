@@ -18,7 +18,7 @@ public sealed class AddressResultRepository(
     FastAddressDbContext context,
     IOptionsMonitor<AddressSearchOptions> optionsMonitor) : IAddressResultRepository
 {
-    // Skip re-writing a row that was refreshed this recently.
+    // Skip re-stamping a result row that was refreshed this recently.
     private static readonly Duration RecentRefreshWindow = Duration.FromMinutes(5);
 
     /// <inheritdoc/>
