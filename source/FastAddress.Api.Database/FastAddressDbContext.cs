@@ -32,9 +32,6 @@ public sealed class FastAddressDbContext : DbContext
         Clock = timeProvider;
     }
 
-    // Empty constructor needed for tests
-    public FastAddressDbContext() { }
-
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
