@@ -12,16 +12,16 @@ public sealed class DomainEventDispatchTests
     [Fact]
     public async Task DispatchAsync_ResolvesHandlerFromScopeAndForwardsTypedEvent()
     {
-        // Arrange - the bridge must resolve IDomainEventHandler<AddressSearchPerformed> and hand it
+        // Arrange - the bridge must resolve IDomainEventHandler<GoogleResultsRetrieved> and hand it
         // the event narrowed to its concrete type.
-        var handler = Substitute.For<IDomainEventHandler<AddressSearchPerformed>>();
+        var handler = Substitute.For<IDomainEventHandler<GoogleResultsRetrieved>>();
         await using var scope = new ServiceCollection()
             .AddSingleton(handler)
             .BuildServiceProvider();
-        var @event = new AddressSearchPerformed(EventTestBuilders.Query(), MatchCount: 0);
+        var @event = EventTestBuilders.Retrieved();
 
         // Act
-        await new DomainEventDispatch<AddressSearchPerformed>()
+        await new DomainEventDispatch<GoogleResultsRetrieved>()
             .DispatchAsync(@event, scope, CancellationToken.None);
 
         // Assert
