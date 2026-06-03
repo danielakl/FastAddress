@@ -26,7 +26,8 @@ public sealed record StreetAddressDto
     public required Point Location { get; init; }
 
     /// <summary>
-    /// Relevance score in 0..1 representing the quality of the search result entry.
+    /// Relevance score in 0..1 representing the quality of the search result entry, or
+    /// <see langword="null"/> when the relevance is unknown.
     /// </summary>
-    public required double Score { get; init; }
+    public required double? Score { get; init; }
 }

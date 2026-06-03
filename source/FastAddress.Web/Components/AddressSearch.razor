@@ -62,9 +62,12 @@
                                       class="truncate text-xs text-muted">@result.PostalLine</span>
                             }
                         </span>
-                        <span class="shrink-0 rounded-full bg-line px-2 py-0.5 font-mono text-xs text-muted">
-                            @result.Score.ToString("P0")
-                        </span>
+                        @if (result.Score is { } score)
+                        {
+                            <span class="shrink-0 rounded-full bg-line px-2 py-0.5 font-mono text-xs text-muted">
+                                @score.ToString("P0")
+                            </span>
+                        }
                     </button>
                 </li>
             }

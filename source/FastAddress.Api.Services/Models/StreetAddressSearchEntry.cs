@@ -26,8 +26,8 @@ public sealed record StreetAddressSearchEntry
     public required Point Location { get; init; }
 
     /// <summary>
-    /// Trigram-similarity relevance score (0..1). The proximity bias affects ordering only and is
-    /// deliberately not folded into this value, keeping it bounded in 0..1.
+    /// Trigram-similarity relevance score (0..1) for database matches. <see langword="null"/> for
+    /// results served straight from Google, where no similarity was computed.
     /// </summary>
-    public required double Score { get; init; }
+    public required double? Score { get; init; }
 }

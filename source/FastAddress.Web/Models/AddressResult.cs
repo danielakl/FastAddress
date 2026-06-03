@@ -26,6 +26,6 @@ public sealed record AddressResult
     /// <summary>Longitude in degrees (WGS84).</summary>
     public double Longitude { get; init; }
 
-    /// <summary>Relevance score in 0..1.</summary>
-    public double Score { get; init; }
+    /// <summary>Relevance score in 0..1. <see langword="null"/> when relevance is unknown.</summary>
+    public double? Score { get; init; }
 }
