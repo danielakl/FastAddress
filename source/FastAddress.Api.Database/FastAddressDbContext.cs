@@ -16,7 +16,9 @@ public sealed class FastAddressDbContext : DbContext
     public const string SchemaName = "address";
 
     public DbSet<StreetAddressResult> StreetAddressResults { get; private set; }
-    
+
+    public DbSet<StreetAddressQuery> StreetAddressQueries { get; private set; }
+
     public IClock Clock { get; }
 
     /// <summary>
@@ -48,6 +50,7 @@ public sealed class FastAddressDbContext : DbContext
 
         streetAddressResult.Property(e => e.Country).HasMaxLength(100);
         streetAddressResult.Property(e => e.GooglePlaceId).HasMaxLength(500);
+        streetAddressResult.Property(e => e.LastRefreshed).HasDefaultValueNow();
         streetAddressResult.Property(e => e.Location).HasGeographyColumnType();
         streetAddressResult.Property(e => e.PostalCode).HasMaxLength(20);
         streetAddressResult.Property(e => e.PostalTown).HasMaxLength(100);
@@ -59,6 +62,17 @@ public sealed class FastAddressDbContext : DbContext
         streetAddressResult.HasIndex(e => e.SearchText).HasTrigramIndex();
 
         streetAddressResult.ToTable("street_address_results");
+
+        var streetAddressQuery = modelBuilder.Entity<StreetAddressQuery>();
+        streetAddressQuery.HasKey(e => e.Id);
+        streetAddressQuery.HasDefaultTimestamps();
+
+        streetAddressQuery.Property(e => e.LastRefreshed).HasDefaultValueNow();
+        streetAddressQuery.Property(e => e.Query).HasMaxLength(250);
+
+        streetAddressQuery.HasIndex(e => e.Query).IsUnique();
+
+        streetAddressQuery.ToTable("street_address_queries");
     }
 
     /// <inheritdoc/>
