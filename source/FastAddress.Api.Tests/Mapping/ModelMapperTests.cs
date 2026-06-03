@@ -15,7 +15,7 @@ public sealed class ModelMapperTests
     private static AddressComponent Component(string longText, string shortText, params string[] types) =>
         new() { LongText = longText, ShortText = shortText, Types = types };
 
-    private static AddressSearchResult Result(params AddressComponent[] components) =>
+    private static GooglePlace Result(params AddressComponent[] components) =>
         new()
         {
             PlaceId = "place-1",

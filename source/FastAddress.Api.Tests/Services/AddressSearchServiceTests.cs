@@ -89,11 +89,11 @@ public sealed class AddressSearchServiceTests
         _addressRepo.Search(Arg.Any<string>(), Arg.Any<Point?>(), Arg.Any<int>())
             .Returns(matches.AsAsyncEnumerable());
 
-    private void MockGoogleResults(params AddressSearchResult[] results) =>
+    private void MockGoogleResults(params GooglePlace[] results) =>
         _placesService.Search(Arg.Any<AddressSearchRequest>(), Arg.Any<CancellationToken>())
             .Returns(results.AsAsyncEnumerable());
 
-    private static async IAsyncEnumerable<AddressSearchResult> ThrowAfter(AddressSearchResult first)
+    private static async IAsyncEnumerable<GooglePlace> ThrowAfter(GooglePlace first)
     {
         yield return first;
         await Task.CompletedTask;

@@ -21,7 +21,7 @@ internal static class EventTestBuilders
         Point? locationBias = null) =>
         new() { Text = text, Limit = limit, LocationBias = locationBias };
 
-    public static AddressSearchResult GoogleResult(
+    public static GooglePlace GoogleResult(
         string placeId,
         string type = "street_address",
         string streetName = "Lade alle",

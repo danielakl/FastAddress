@@ -8,7 +8,7 @@ namespace FastAddress.Api.Vendors.Models;
 /// <summary>
 /// One street-address candidate returned from <see cref="IGooglePlacesService"/>.
 /// </summary>
-public sealed record AddressSearchResult
+public sealed record GooglePlace
 {
     /// <summary>
     /// Google place identifier.

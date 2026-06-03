@@ -25,7 +25,7 @@ internal sealed class GooglePlacesService(IPlacesApi places) : IGooglePlacesServ
     private const string PlaceDetailsFields = "id,movedPlaceId,addressComponents,shortFormattedAddress,location,types";
 
     /// <inheritdoc/>
-    public async IAsyncEnumerable<AddressSearchResult> Search(
+    public async IAsyncEnumerable<GooglePlace> Search(
         AddressSearchRequest request,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
@@ -74,7 +74,7 @@ internal sealed class GooglePlacesService(IPlacesApi places) : IGooglePlacesServ
             yield break;
         }
 
-        var pending = new List<Task<AddressSearchResult?>>(predictions.Select(prediction => FetchAsync(prediction!.PlaceId, ct)));
+        var pending = new List<Task<GooglePlace?>>(predictions.Select(prediction => FetchAsync(prediction!.PlaceId, ct)));
 
         while (pending.Count > 0)
         {
@@ -112,7 +112,7 @@ internal sealed class GooglePlacesService(IPlacesApi places) : IGooglePlacesServ
             detail: ex.ReasonPhrase,
             innerException: ex);
 
-    private async Task<AddressSearchResult?> FetchAsync(string placeId, CancellationToken ct)
+    private async Task<GooglePlace?> FetchAsync(string placeId, CancellationToken ct)
     {
         PlaceDetailsResponse details;
         try
@@ -137,7 +137,7 @@ internal sealed class GooglePlacesService(IPlacesApi places) : IGooglePlacesServ
         var point = SpatialHelper.GeometryFactoryInstance.CreatePoint(
             new Coordinate(details.Location.Longitude, details.Location.Latitude));
 
-        return new AddressSearchResult
+        return new GooglePlace
         {
             AddressComponents = details.AddressComponents ?? [],
             Location = point,

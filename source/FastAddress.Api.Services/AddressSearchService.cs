@@ -101,7 +101,7 @@ public sealed class AddressSearchService(
             Score = null,
         };
 
-    private static bool IsStreetAddress(AddressSearchResult result) =>
+    private static bool IsStreetAddress(GooglePlace result) =>
         result.Types.Any(PlaceTypes.IsStreetAddressType);
 
     private static AddressSearchRequest ToVendorRequest(SearchStreetAddressQuery query) =>

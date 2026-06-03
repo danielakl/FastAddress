@@ -7,7 +7,7 @@ using FastAddress.Sdk.Helpers;
 namespace FastAddress.Api.Services.Mapping;
 
 /// <summary>
-/// Builds a persistable <see cref="StreetAddressUpsert"/> from a Google <see cref="AddressSearchResult"/>.
+/// Builds a persistable <see cref="StreetAddressUpsert"/> from a Google <see cref="GooglePlace"/>.
 /// </summary>
 internal static class ModelMapper
 {
@@ -17,7 +17,7 @@ internal static class ModelMapper
     /// </summary>
     /// <param name="result">The Google search result.</param>
     /// <returns>The upsert payload, or <see langword="null"/> when the result has no street line.</returns>
-    public static StreetAddressUpsert? From(AddressSearchResult result)
+    public static StreetAddressUpsert? From(GooglePlace result)
     {
         ArgumentNullException.ThrowIfNull(result);
 
@@ -47,7 +47,7 @@ internal static class ModelMapper
         };
     }
 
-    private static string? GetComponent(string componentType, AddressSearchResult fromResult)
+    private static string? GetComponent(string componentType, GooglePlace fromResult)
     {
         var component = fromResult.AddressComponents.FirstOrDefault(c => c.Types.Contains(componentType, StringComparer.OrdinalIgnoreCase));
         if (component is null)
