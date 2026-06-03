@@ -42,11 +42,11 @@ public sealed class AddressController : ControllerBase
     }
 
     [HttpGet]
-    public ConfiguredCancelableAsyncEnumerable<StreetAddress> TestGetAllAddresses(
+    public ConfiguredCancelableAsyncEnumerable<StreetAddressResult> TestGetAllAddresses(
         [FromServices] FastAddressDbContext context,
         CancellationToken ct = default)
     {
-        return context.StreetAddresses
+        return context.StreetAddressResults
             .AsNoTracking()
             .ToAsyncEnumerable()
             .WithCancellation(ct);
