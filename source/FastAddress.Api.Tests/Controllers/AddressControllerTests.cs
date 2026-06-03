@@ -12,7 +12,7 @@ namespace FastAddress.Api.Tests.Controllers;
 
 public sealed class AddressControllerTests
 {
-    private readonly IStreetAddressSearchService searchService = Substitute.For<IStreetAddressSearchService>();
+    private readonly IAddressSearchService _searchService = Substitute.For<IAddressSearchService>();
 
     private static StreetAddressSearchEntry Entry(string streetLine) =>
         new()
@@ -27,7 +27,7 @@ public sealed class AddressControllerTests
         new() { Address = address, Limit = limit, LocationBias = GeoTestData.Point(10.0, 63.0) };
 
     private void GivenSearchReturns(params StreetAddressSearchEntry[] entries) =>
-        searchService.Search(Arg.Any<SearchStreetAddressQuery>(), Arg.Any<CancellationToken>())
+        _searchService.Search(Arg.Any<SearchStreetAddressQuery>(), Arg.Any<CancellationToken>())
             .Returns(entries.AsAsyncEnumerable());
 
     [Fact]
@@ -38,7 +38,7 @@ public sealed class AddressControllerTests
         var controller = new AddressController();
 
         // Act
-        var results = await controller.SearchAddresses(SearchDto(), searchService).CollectAsync();
+        var results = await controller.SearchAddresses(SearchDto(), _searchService).CollectAsync();
 
         // Assert
         Assert.Equal(new[] { "Addr 0", "Addr 1" }, results.Select(r => r.StreetAddress));
@@ -52,7 +52,7 @@ public sealed class AddressControllerTests
 
         // Act + Assert
         await Assert.ThrowsAsync<ValidationException>(async () =>
-            await controller.SearchAddresses(SearchDto(address: ""), searchService).CollectAsync());
+            await controller.SearchAddresses(SearchDto(address: ""), _searchService).CollectAsync());
     }
 
     [Fact]
@@ -64,10 +64,10 @@ public sealed class AddressControllerTests
         var searchDto = SearchDto(address: "  Lade alle 77  ", limit: 5);
 
         // Act
-        await controller.SearchAddresses(searchDto, searchService).CollectAsync();
+        await controller.SearchAddresses(searchDto, _searchService).CollectAsync();
 
         // Assert
-        searchService.Received(1).Search(
+        _searchService.Received(1).Search(
             Arg.Is<SearchStreetAddressQuery>(q => q.Text == "Lade alle 77" && q.Limit == 5 && q.LocationBias != null),
             Arg.Any<CancellationToken>());
     }

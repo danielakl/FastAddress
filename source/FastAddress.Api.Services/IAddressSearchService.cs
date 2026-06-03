@@ -5,7 +5,7 @@ namespace FastAddress.Api.Services;
 /// <summary>
 /// Street address search service.
 /// </summary>
-public interface IStreetAddressSearchService
+public interface IAddressSearchService
 {
     /// <summary>
     /// Search for street addresses.

@@ -32,7 +32,7 @@ services.AddSingleton<IClock>(SystemClock.Instance);
 
 services.AddScoped<IAddressQueryRepository, AddressQueryRepository>();
 services.AddScoped<IAddressResultRepository, AddressResultRepository>();
-services.AddScoped<IStreetAddressSearchService, StreetAddressSearchService>();
+services.AddScoped<IAddressSearchService, AddressSearchService>();
 
 services.AddFastAddressDbContext(configuration);
 services.AddDomainEventSystem();

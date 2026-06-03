@@ -20,7 +20,7 @@ public sealed class AddressController : ControllerBase
     [HttpPost("search")]
     public async IAsyncEnumerable<StreetAddressDto> SearchAddresses(
         [FromBody] SearchStreetAddressDto searchDto,
-        [FromServices] IStreetAddressSearchService searchService,
+        [FromServices] IAddressSearchService searchService,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
         searchDto = searchDto.CleanAndValidateOrThrow();
