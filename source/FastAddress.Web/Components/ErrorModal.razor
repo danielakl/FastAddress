@@ -16,8 +16,17 @@
                     </svg>
                 </span>
                 <div class="min-w-0">
-                    <h2 id="error-modal-title" class="text-base font-semibold text-ink">Something went wrong</h2>
-                    <p class="mt-1 text-sm text-muted">@_message</p>
+                    <h2 id="error-modal-title" data-testid="error-modal-title" class="text-base font-semibold text-ink">@_title</h2>
+                    @if (!string.IsNullOrWhiteSpace(_detail))
+                    {
+                        <p data-testid="error-modal-detail" class="mt-1 text-sm text-muted">@_detail</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_reference))
+                    {
+                        <p data-testid="error-modal-reference" class="mt-2 font-mono text-xs text-muted/80">
+                            Reference: @_reference
+                        </p>
+                    }
                 </div>
             </div>
 
@@ -34,14 +43,22 @@
 }
 
 @code {
-    private bool _visible;
-    private string? _message;
+    private const string DefaultTitle = "Something went wrong";
 
-    /// <summary>Show the modal with the given message.</summary>
-    /// <param name="message">The error message to display.</param>
-    public void Show(string message)
+    private bool _visible;
+    private string _title = DefaultTitle;
+    private string? _detail;
+    private string? _reference;
+
+    /// <summary>Show the modal with a problem title, optional detail, and an optional trace reference.</summary>
+    /// <param name="title">The error title; falls back to a generic heading when blank.</param>
+    /// <param name="detail">The explanation specific to this failure, when available.</param>
+    /// <param name="reference">A trace identifier the user can quote when reporting the problem.</param>
+    public void Show(string? title, string? detail = null, string? reference = null)
     {
-        _message = message;
+        _title = string.IsNullOrWhiteSpace(title) ? DefaultTitle : title;
+        _detail = detail;
+        _reference = reference;
         _visible = true;
         StateHasChanged();
     }

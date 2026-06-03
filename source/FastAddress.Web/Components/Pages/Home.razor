@@ -1,5 +1,6 @@
 @page "/"
 @rendermode InteractiveServer
+@using Microsoft.AspNetCore.Mvc
 
 <PageTitle>FastAddress - Street address search</PageTitle>
 
@@ -24,5 +25,12 @@
 @code {
     private ErrorModal? _errorModal;
 
-    private void HandleError(string message) => _errorModal?.Show(message);
+    private void HandleError(ProblemDetails problem)
+    {
+        var reference = problem.Extensions.TryGetValue("traceId", out var traceId)
+            ? traceId?.ToString()
+            : null;
+
+        _errorModal?.Show(problem.Title, problem.Detail, reference);
+    }
 }

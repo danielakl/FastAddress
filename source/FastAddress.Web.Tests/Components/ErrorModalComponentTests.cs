@@ -29,6 +29,38 @@ public sealed class ErrorModalComponentTests : BunitContext
     }
 
     [Fact]
+    public async Task Show_DisplaysTitleDetailAndTraceReference()
+    {
+        // Arrange
+        var cut = Render<ErrorModal>();
+
+        // Act
+        await cut.InvokeAsync(() => cut.Instance.Show(
+            "Address search failed",
+            "The address service responded with status 502.",
+            reference: "0HN1ABCDEF"));
+
+        // Assert
+        Assert.Equal("Address search failed", cut.Find("[data-testid='error-modal-title']").TextContent.Trim());
+        Assert.Equal("The address service responded with status 502.", cut.Find("[data-testid='error-modal-detail']").TextContent.Trim());
+        Assert.Contains("0HN1ABCDEF", cut.Find("[data-testid='error-modal-reference']").TextContent);
+    }
+
+    [Fact]
+    public async Task Show_WithBlankTitle_FallsBackToGenericHeading()
+    {
+        // Arrange
+        var cut = Render<ErrorModal>();
+
+        // Act
+        await cut.InvokeAsync(() => cut.Instance.Show(title: null, detail: "Boom"));
+
+        // Assert
+        Assert.Equal("Something went wrong", cut.Find("[data-testid='error-modal-title']").TextContent.Trim());
+        Assert.Empty(cut.FindAll("[data-testid='error-modal-reference']"));
+    }
+
+    [Fact]
     public async Task Dismiss_HidesTheDialog()
     {
         // Arrange

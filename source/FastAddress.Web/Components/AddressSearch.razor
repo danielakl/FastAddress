@@ -1,6 +1,7 @@
 @using FastAddress.Sdk.Dto
 @using FastAddress.Web.Models
 @using FastAddress.Web.State
+@using Microsoft.AspNetCore.Mvc
 @implements IAsyncDisposable
 @inject IJSRuntime JS
 @inject SearchState State
@@ -96,9 +97,9 @@
     private IJSObjectReference? _module;
     private CancellationTokenSource? _debounceCts;
 
-    /// <summary>Raised when a search fails (the parent typically shows an error modal).</summary>
+    /// <summary>Raised with the problem details when a search fails (the parent typically shows an error modal).</summary>
     [Parameter]
-    public EventCallback<string> OnError { get; set; }
+    public EventCallback<ProblemDetails> OnError { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -148,24 +149,39 @@
 
         try
         {
-            var found = await _module.InvokeAsync<AddressResult[]?>(
+            var outcome = await _module.InvokeAsync<SearchOutcome?>(
                 "search", text, bias?.Latitude, bias?.Longitude);
 
-            // Null = the request was aborted (superseded); ignore it. Also drop stale results.
-            if (found is null || token.IsCancellationRequested || text != _query)
+            // Null = the request was aborted (superseded). Also drop stale results.
+            if (outcome is null || token.IsCancellationRequested || text != _query)
             {
                 return;
             }
 
-            _results = found;
-            _searched = true;
-            _showResults = true;
+            if (outcome.Error is { } problem)
+            {
+                _results = null;
+                _showResults = false;
+                await OnError.InvokeAsync(problem);
+            }
+            else
+            {
+                _results = [.. outcome.Results];
+                _searched = true;
+                _showResults = true;
+            }
         }
-        catch (JSException ex)
+        catch (JSException)
         {
+            // The module itself failed unexpectedly (not an HTTP error, which comes back as outcome.Error).
+            // Surface a clean message without leaking the JS stack trace.
             _results = null;
             _showResults = false;
-            await OnError.InvokeAsync($"Address search failed: {ex.Message}");
+            await OnError.InvokeAsync(new ProblemDetails
+            {
+                Title = "Address search failed",
+                Detail = "Something went wrong while searching. Please try again.",
+            });
         }
 
         StateHasChanged();

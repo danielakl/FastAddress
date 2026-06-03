@@ -4,6 +4,7 @@ using FastAddress.Web.State;
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 
@@ -32,7 +33,9 @@ public sealed class AddressSearchComponentTests : BunitContext
     }
 
     private void SetupSearch(AddressResult[] results) =>
-        JSInterop.SetupModule(ModulePath).Setup<AddressResult[]>("search", _ => true).SetResult(results);
+        JSInterop.SetupModule(ModulePath)
+            .Setup<SearchOutcome?>("search", _ => true)
+            .SetResult(new SearchOutcome { Results = results });
 
     [Fact]
     public void Counter_IsHidden_WhenEmpty()
@@ -52,7 +55,7 @@ public sealed class AddressSearchComponentTests : BunitContext
 
         await cut.Find(Input).InputAsync(new ChangeEventArgs { Value = "Lade" });
 
-        cut.WaitForAssertion(() => Assert.Contains("opacity-100", cut.Find(Counter).GetAttribute("class")));
+        await cut.WaitForAssertionAsync(() => Assert.Contains("opacity-100", cut.Find(Counter).GetAttribute("class")));
     }
 
     [Fact]
@@ -62,7 +65,7 @@ public sealed class AddressSearchComponentTests : BunitContext
         var cut = Render<AddressSearch>();
 
         await cut.Find(Input).InputAsync(new ChangeEventArgs { Value = "Lade" });
-        await cut.Find(ClearButton).ClickAsync(new());
+        await cut.Find(ClearButton).ClickAsync(new MouseEventArgs());
 
         Assert.Empty(cut.FindAll(ClearButton));
         Assert.Contains("0/", cut.Find(Counter).TextContent);
@@ -76,7 +79,7 @@ public sealed class AddressSearchComponentTests : BunitContext
         var cut = Render<AddressSearch>();
 
         await cut.Find(Input).InputAsync(new ChangeEventArgs { Value = "Lade" });
-        cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll(Result).Count));
+        await cut.WaitForAssertionAsync(() => Assert.Equal(2, cut.FindAll(Result).Count));
 
         await cut.FindAll(Result)[0].ClickAsync(new());
 
@@ -91,7 +94,7 @@ public sealed class AddressSearchComponentTests : BunitContext
         var cut = Render<AddressSearch>();
 
         await cut.Find(Input).InputAsync(new ChangeEventArgs { Value = "Lade" });
-        cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll(Result).Count));
+        await cut.WaitForAssertionAsync(() => Assert.Equal(2, cut.FindAll(Result).Count));
 
         // Postal town then code, per the configured display order.
         Assert.Equal("Trondheim 7041", cut.FindAll(Locality)[0].TextContent.Trim());
@@ -108,25 +111,53 @@ public sealed class AddressSearchComponentTests : BunitContext
         var cut = Render<AddressSearch>();
 
         await cut.Find(Input).InputAsync(new ChangeEventArgs { Value = "Lade" });
-        cut.WaitForAssertion(() => Assert.Single(cut.FindAll(Result)));
+        await cut.WaitForAssertionAsync(() => Assert.Single(cut.FindAll(Result)));
 
         Assert.Empty(cut.FindAll(Locality));
     }
 
     [Fact]
-    public async Task Search_WhenModuleThrows_RaisesOnError()
+    public async Task Search_WhenApiReturnsProblemDetails_RaisesOnErrorWithTitleAndDetail()
     {
+        var problem = new ProblemDetails
+        {
+            Title = "Address search failed",
+            Detail = "The address service responded with status 502.",
+        };
         JSInterop.SetupModule(ModulePath)
-            .Setup<AddressResult[]>("search", _ => true)
-            .SetException(new JSException("network down"));
+            .Setup<SearchOutcome?>("search", _ => true)
+            .SetResult(new SearchOutcome { Error = problem });
 
-        string? error = null;
+        ProblemDetails? error = null;
         var cut = Render<AddressSearch>(parameters => parameters
-            .Add(c => c.OnError, EventCallback.Factory.Create<string>(this, message => error = message)));
+            .Add(c => c.OnError, EventCallback.Factory.Create<ProblemDetails>(this, raised => error = raised)));
 
         await cut.Find(Input).InputAsync(new ChangeEventArgs { Value = "Lade" });
 
-        cut.WaitForAssertion(() => Assert.NotNull(error));
-        Assert.Contains("network down", error);
+        await cut.WaitForAssertionAsync(() => Assert.NotNull(error));
+        Assert.Equal("Address search failed", error!.Title);
+        Assert.Equal("The address service responded with status 502.", error.Detail);
+        // No results are shown when the search fails.
+        Assert.Empty(cut.FindAll(Result));
+    }
+
+    [Fact]
+    public async Task Search_WhenModuleThrows_RaisesGenericOnErrorWithoutLeakingTheException()
+    {
+        JSInterop.SetupModule(ModulePath)
+            .Setup<SearchOutcome?>("search", _ => true)
+            .SetException(new JSException("network down\n    at Module.search (app.js:31:19)"));
+
+        ProblemDetails? error = null;
+        var cut = Render<AddressSearch>(parameters => parameters
+            .Add(c => c.OnError, EventCallback.Factory.Create<ProblemDetails>(this, raised => error = raised)));
+
+        await cut.Find(Input).InputAsync(new ChangeEventArgs { Value = "Lade" });
+
+        await cut.WaitForAssertionAsync(() => Assert.NotNull(error));
+        Assert.Equal("Address search failed", error!.Title);
+        // The raw exception text and stack trace must never reach the user-facing message.
+        Assert.DoesNotContain("network down", error.Detail);
+        Assert.DoesNotContain("at Module.search", error.Detail);
     }
 }

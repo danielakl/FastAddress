@@ -43,14 +43,34 @@ public static partial class AddressProxyEndpoints
             var results = await api.SearchAddressesAsync(request, ct);
             return Results.Json(results);
         }
-        catch (Exception ex) when (ex is ApiException or HttpRequestException)
+        catch (ApiException ae)
         {
-            // Upstream unreachable / errored. Surface a clean 502 the browser can show in the error modal.
-            LogUpstreamFailed(loggerFactory.CreateLogger(typeof(AddressProxyEndpoints)), ex);
-            return Results.Json(
-                new { error = "The address service is currently unavailable." },
-                statusCode: StatusCodes.Status502BadGateway,
-                contentType: MediaTypeNames.Application.Json);
+            // The upstream API already shaped this failure as problem details (see ProblemDetailsExceptionHandler).
+            // Forward its body, content type, and status verbatim so the browser sees the real title, detail, and traceId.
+            LogUpstreamFailed(loggerFactory.CreateLogger(typeof(AddressProxyEndpoints)), ae);
+
+            if (!string.IsNullOrEmpty(ae.Content))
+            {
+                return Results.Content(
+                    ae.Content,
+                    ae.ContentHeaders?.ContentType?.MediaType ?? MediaTypeNames.Application.ProblemJson,
+                    statusCode: (int)ae.StatusCode);
+            }
+
+            // The upstream errored without a body to forward. Synthesize a problem-details response.
+            return Results.Problem(
+                title: "Address search failed",
+                detail: "The address service is currently unavailable.",
+                statusCode: (int)ae.StatusCode);
+        }
+        catch (HttpRequestException hre)
+        {
+            // No HTTP response at all (DNS, connection refused, TLS). Surface a 502 problem-details.
+            LogUpstreamFailed(loggerFactory.CreateLogger(typeof(AddressProxyEndpoints)), hre);
+            return Results.Problem(
+                title: "Address search failed",
+                detail: "The address service is currently unavailable.",
+                statusCode: StatusCodes.Status502BadGateway);
         }
     }
 
