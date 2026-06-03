@@ -1,10 +1,17 @@
 using FastAddress.Sdk.Api;
+using FastAddress.Sdk.Logging;
 using FastAddress.Sdk.Serialization;
 using FastAddress.Web.Components;
 using FastAddress.Web.Proxy;
 using FastAddress.Web.State;
 
 var builder = WebApplication.CreateBuilder(args);
+var configuration = builder.Configuration;
+
+// Route all logging through Serilog - always console and Seq if configured
+builder.Host.UseFastAddressSerilog();
+
+builder.Services.Configure<SeqLoggingOptions>(configuration.GetSection(SeqLoggingOptions.ConfigKey));
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
