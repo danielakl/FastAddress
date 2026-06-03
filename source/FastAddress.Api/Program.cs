@@ -1,6 +1,7 @@
 using FastAddress.Api.Database.Extensions;
 using FastAddress.Api.Database.Options;
 using FastAddress.Api.Database.Repositories;
+using FastAddress.Api.Infrastructure;
 using FastAddress.Api.Services;
 using FastAddress.Api.Services.Messages.Extensions;
 using FastAddress.Api.Vendors.Extensions;
@@ -37,6 +38,9 @@ services.AddScoped<IAddressSearchService, AddressSearchService>();
 services.AddFastAddressDbContext(configuration);
 services.AddDomainEventSystem();
 
+services.AddProblemDetails();
+services.AddExceptionHandler<ProblemDetailsExceptionHandler>();
+
 services.AddHealthChecks();
 services.AddControllers()
     .AddControllersAsServices()
@@ -45,6 +49,7 @@ services.AddControllers()
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseExceptionHandler();
 app.UseRouting();
 app.MapHealthChecks("/health");
 app.MapControllers();
