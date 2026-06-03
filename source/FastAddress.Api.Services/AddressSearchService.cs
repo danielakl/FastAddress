@@ -104,6 +104,6 @@ public sealed class AddressSearchService(
     private static bool IsStreetAddress(GooglePlace result) =>
         result.Types.Any(PlaceTypes.IsStreetAddressType);
 
-    private static AddressSearchRequest ToVendorRequest(SearchStreetAddressQuery query) =>
+    private static GooglePlacesSearchRequest ToVendorRequest(SearchStreetAddressQuery query) =>
         new() { Query = query.Text, Limit = query.Limit, LocationBias = query.LocationBias };
 }

@@ -5,7 +5,7 @@ namespace FastAddress.Api.Vendors.Models;
 /// <summary>
 /// Address search request.
 /// </summary>
-public sealed record AddressSearchRequest
+public sealed record GooglePlacesSearchRequest
 {
     /// <summary>
     /// Query to search for.

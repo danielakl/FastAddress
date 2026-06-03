@@ -45,7 +45,7 @@ public sealed class GooglePlacesServiceTests
         var service = CreateService();
 
         // Act
-        var results = await service.SearchPlaces(new AddressSearchRequest { Query = query, Limit = null })
+        var results = await service.SearchPlaces(new GooglePlacesSearchRequest { Query = query, Limit = null })
             .CollectAsync();
 
         // Assert
@@ -75,7 +75,7 @@ public sealed class GooglePlacesServiceTests
         var service = CreateService();
 
         // Act
-        var results = await service.SearchPlaces(new AddressSearchRequest { Query = "lade", Limit = 2 })
+        var results = await service.SearchPlaces(new GooglePlacesSearchRequest { Query = "lade", Limit = 2 })
             .CollectAsync();
 
         // Assert
@@ -93,7 +93,7 @@ public sealed class GooglePlacesServiceTests
         var service = CreateService();
 
         // Act
-        var results = await service.SearchPlaces(new AddressSearchRequest { Query = "lade", Limit = null })
+        var results = await service.SearchPlaces(new GooglePlacesSearchRequest { Query = "lade", Limit = null })
             .CollectAsync();
 
         // Assert
@@ -110,7 +110,7 @@ public sealed class GooglePlacesServiceTests
         var service = CreateService();
 
         // Act
-        var results = await service.SearchPlaces(new AddressSearchRequest { Query = "lade", Limit = null })
+        var results = await service.SearchPlaces(new GooglePlacesSearchRequest { Query = "lade", Limit = null })
             .CollectAsync();
 
         // Assert
@@ -127,7 +127,7 @@ public sealed class GooglePlacesServiceTests
         var service = CreateService();
 
         // Act
-        var results = await service.SearchPlaces(new AddressSearchRequest { Query = "lade", Limit = null })
+        var results = await service.SearchPlaces(new GooglePlacesSearchRequest { Query = "lade", Limit = null })
             .CollectAsync();
 
         // Assert
@@ -143,7 +143,7 @@ public sealed class GooglePlacesServiceTests
         var service = CreateService();
 
         // Act
-        var results = await service.SearchPlaces(new AddressSearchRequest { Query = "lade", Limit = null })
+        var results = await service.SearchPlaces(new GooglePlacesSearchRequest { Query = "lade", Limit = null })
             .CollectAsync();
 
         // Assert
@@ -160,7 +160,7 @@ public sealed class GooglePlacesServiceTests
         var service = CreateService();
 
         // Act
-        await service.SearchPlaces(new AddressSearchRequest { Query = "lade", Limit = null, LocationBias = bias })
+        await service.SearchPlaces(new GooglePlacesSearchRequest { Query = "lade", Limit = null, LocationBias = bias })
             .CollectAsync();
 
         // Assert - Point Y/X map to latitude/longitude, fixed 25km radius.
@@ -181,7 +181,7 @@ public sealed class GooglePlacesServiceTests
         var service = CreateService();
 
         // Act
-        await service.SearchPlaces(new AddressSearchRequest { Query = "lade", Limit = null })
+        await service.SearchPlaces(new GooglePlacesSearchRequest { Query = "lade", Limit = null })
             .CollectAsync();
 
         // Assert
@@ -198,7 +198,7 @@ public sealed class GooglePlacesServiceTests
         var service = CreateService();
 
         // Act
-        var results = await service.SearchPlaces(new AddressSearchRequest { Query = "lade", Limit = null })
+        var results = await service.SearchPlaces(new GooglePlacesSearchRequest { Query = "lade", Limit = null })
             .CollectAsync();
 
         // Assert
@@ -226,7 +226,7 @@ public sealed class GooglePlacesServiceTests
 
         // Act + Assert. The transport error is translated to a problem-details exception with the status.
         var thrown = await Assert.ThrowsAsync<ProblemDetailsException>(async () =>
-            await service.SearchPlaces(new AddressSearchRequest { Query = "lade", Limit = null }).CollectAsync());
+            await service.SearchPlaces(new GooglePlacesSearchRequest { Query = "lade", Limit = null }).CollectAsync());
         Assert.Equal(429, thrown.StatusCode);
         Assert.Same(apiError, thrown.InnerException);
     }
@@ -243,7 +243,7 @@ public sealed class GooglePlacesServiceTests
 
         // Act + Assert
         var thrown = await Assert.ThrowsAsync<ProblemDetailsException>(async () =>
-            await service.SearchPlaces(new AddressSearchRequest { Query = "lade", Limit = null }).CollectAsync());
+            await service.SearchPlaces(new GooglePlacesSearchRequest { Query = "lade", Limit = null }).CollectAsync());
         Assert.Equal(429, thrown.StatusCode);
     }
 }

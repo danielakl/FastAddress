@@ -26,7 +26,7 @@ internal sealed class GooglePlacesService(IPlacesApi places) : IGooglePlacesServ
 
     /// <inheritdoc/>
     public async IAsyncEnumerable<GooglePlace> SearchPlaces(
-        AddressSearchRequest request,
+        GooglePlacesSearchRequest request,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(request);
