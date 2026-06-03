@@ -12,6 +12,10 @@
     <PackageReference Include="NodaTime.Serialization.SystemTextJson" />
     <PackageReference Include="Refit" />
     <PackageReference Include="Refit.HttpClientFactory" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Exceptions" />
+    <PackageReference Include="Serilog.Exceptions.Refit" />
+    <PackageReference Include="Serilog.Sinks.Seq" />
   </ItemGroup>
 
 </Project>
