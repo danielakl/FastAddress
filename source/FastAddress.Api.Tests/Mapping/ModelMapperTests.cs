@@ -19,7 +19,6 @@ public sealed class ModelMapperTests
         new()
         {
             PlaceId = "place-1",
-            OrderScore = 0,
             ShortFormattedAddress = "Lade alle 77 a, Trondheim",
             // Raw, high-precision point so the precision pass is observable.
             Location = new Point(new Coordinate(10.123456789, 63.987654321)) { SRID = SpatialHelper.Srid },

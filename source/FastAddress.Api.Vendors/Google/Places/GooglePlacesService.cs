@@ -74,7 +74,7 @@ internal sealed class GooglePlacesService(IPlacesApi places) : IGooglePlacesServ
             yield break;
         }
 
-        var pending = new List<Task<AddressSearchResult?>>(predictions.Select((t, i) => FetchAsync(t!.PlaceId, orderScore: i, ct)));
+        var pending = new List<Task<AddressSearchResult?>>(predictions.Select(prediction => FetchAsync(prediction!.PlaceId, ct)));
 
         while (pending.Count > 0)
         {
@@ -112,7 +112,7 @@ internal sealed class GooglePlacesService(IPlacesApi places) : IGooglePlacesServ
             detail: ex.ReasonPhrase,
             innerException: ex);
 
-    private async Task<AddressSearchResult?> FetchAsync(string placeId, int orderScore, CancellationToken ct)
+    private async Task<AddressSearchResult?> FetchAsync(string placeId, CancellationToken ct)
     {
         PlaceDetailsResponse details;
         try
@@ -141,7 +141,6 @@ internal sealed class GooglePlacesService(IPlacesApi places) : IGooglePlacesServ
         {
             AddressComponents = details.AddressComponents ?? [],
             Location = point,
-            OrderScore = orderScore,
             PlaceId = details.MovedPlaceId ?? details.Id,
             ShortFormattedAddress = details.ShortFormattedAddress,
             Types = details.Types ?? [],

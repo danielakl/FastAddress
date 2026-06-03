@@ -29,7 +29,6 @@ internal static class EventTestBuilders
         new()
         {
             PlaceId = placeId,
-            OrderScore = 0,
             ShortFormattedAddress = $"{streetName} {streetNumber}",
             Location = GeoTestData.Point(10.0, 63.0),
             Types = [type],

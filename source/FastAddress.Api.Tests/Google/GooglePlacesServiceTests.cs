@@ -65,26 +65,6 @@ public sealed class GooglePlacesServiceTests
     }
 
     [Fact]
-    public async Task Search_MultiplePredictions_PreservesAutocompleteRankAsOrderScore()
-    {
-        // Arrange
-        GivenAutocomplete(PlacesBuilders.Prediction("p0"), PlacesBuilders.Prediction("p1"), PlacesBuilders.Prediction("p2"));
-        GivenPlace(PlacesBuilders.Place("p0", "Addr 0"));
-        GivenPlace(PlacesBuilders.Place("p1", "Addr 1"));
-        GivenPlace(PlacesBuilders.Place("p2", "Addr 2"));
-        var service = CreateService();
-
-        // Act
-        var results = await service.Search(new AddressSearchRequest { Query = "lade", Limit = null })
-            .CollectAsync();
-
-        // Assert
-        var ordered = results.OrderBy(r => r.OrderScore).ToList();
-        Assert.Equal(new[] { "p0", "p1", "p2" }, ordered.Select(r => r.PlaceId));
-        Assert.Equal(new[] { 0, 1, 2 }, ordered.Select(r => r.OrderScore));
-    }
-
-    [Fact]
     public async Task Search_LimitProvided_FetchesOnlyTheRequestedNumberOfPredictions()
     {
         // Arrange
