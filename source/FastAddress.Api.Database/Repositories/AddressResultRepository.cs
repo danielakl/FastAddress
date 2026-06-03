@@ -117,6 +117,33 @@ public sealed class AddressResultRepository(
         await context.SaveChangesAsync(ct);
     }
 
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<string>> FindStalePlaceIdsAsync(Instant olderThan, int limit, CancellationToken ct = default)
+    {
+        return await context.StreetAddressResults
+            .AsNoTracking()
+            .Where(a => a.LastRefreshed < olderThan)
+            .OrderBy(a => a.LastRefreshed)
+            .Take(limit)
+            .Select(a => a.GooglePlaceId)
+            .ToListAsync(ct);
+    }
+
+    /// <inheritdoc/>
+    public async Task DeleteByPlaceIdsAsync(IReadOnlyList<string> googlePlaceIds, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(googlePlaceIds);
+
+        if (googlePlaceIds.Count == 0)
+        {
+            return;
+        }
+
+        await context.StreetAddressResults
+            .Where(a => googlePlaceIds.Contains(a.GooglePlaceId))
+            .ExecuteDeleteAsync(ct);
+    }
+
     /// <summary>Intermediate projection: the materialized candidate plus its raw scoring inputs.</summary>
     private sealed class Candidate
     {

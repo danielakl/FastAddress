@@ -3,6 +3,7 @@ using FastAddress.Api.Database.Options;
 using FastAddress.Api.Database.Repositories;
 using FastAddress.Api.Infrastructure;
 using FastAddress.Api.Services;
+using FastAddress.Api.Services.Extensions;
 using FastAddress.Api.Services.Messages.Extensions;
 using FastAddress.Api.Vendors.Extensions;
 using FastAddress.Sdk.Logging;
@@ -40,10 +41,12 @@ services.AddSingleton<IClock>(SystemClock.Instance);
 services.AddScoped<IAddressQueryRepository, AddressQueryRepository>();
 services.AddScoped<IAddressResultRepository, AddressResultRepository>();
 services.AddScoped<IAddressSearchService, AddressSearchService>();
+services.AddScoped<IAddressRefreshService, AddressRefreshService>();
 
 services.AddFastAddressDbContext(configuration);
 services.AddGoogleApiContract(configuration);
 services.AddDomainEventSystem();
+services.AddAddressRefresh(configuration);
 
 services.AddProblemDetails();
 services.AddExceptionHandler<ProblemDetailsExceptionHandler>();

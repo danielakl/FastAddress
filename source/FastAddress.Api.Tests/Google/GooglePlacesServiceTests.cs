@@ -14,12 +14,12 @@ namespace FastAddress.Api.Tests.Google;
 
 public sealed class GooglePlacesServiceTests
 {
-    private readonly IPlacesApi places = Substitute.For<IPlacesApi>();
+    private readonly IPlacesApi _placesApi = Substitute.For<IPlacesApi>();
 
-    private GooglePlacesService CreateService() => new(places);
+    private GooglePlacesService CreateService() => new(_placesApi);
 
-    private void GivenAutocomplete(params PlacePrediction?[] predictions) =>
-        places.AutocompleteAsync(
+    private void MockAutocomplete(params PlacePrediction?[] predictions) =>
+        _placesApi.AutocompleteAsync(
                 Arg.Any<AutocompleteRequest>(),
                 Arg.Any<string>(),
                 Arg.Any<string>(),
@@ -27,8 +27,8 @@ public sealed class GooglePlacesServiceTests
                 Arg.Any<CancellationToken>())
             .Returns(PlacesBuilders.Autocomplete(predictions));
 
-    private void GivenPlace(PlaceDetailsResponse details) =>
-        places.GetPlaceAsync(
+    private void MockGetPlace(PlaceDetailsResponse details) =>
+        _placesApi.GetPlaceAsync(
                 details.Id,
                 Arg.Any<string>(),
                 Arg.Any<string>(),
@@ -50,7 +50,7 @@ public sealed class GooglePlacesServiceTests
 
         // Assert
         Assert.Empty(results);
-        await places.DidNotReceiveWithAnyArgs().AutocompleteAsync(default!, default!, default!, default!, default);
+        await _placesApi.DidNotReceiveWithAnyArgs().AutocompleteAsync(default!, default!, default!, default!, default);
     }
 
     [Fact]
@@ -68,10 +68,10 @@ public sealed class GooglePlacesServiceTests
     public async Task SearchPlaces_LimitProvided_FetchesOnlyTheRequestedNumberOfPredictions()
     {
         // Arrange
-        GivenAutocomplete(PlacesBuilders.Prediction("p0"), PlacesBuilders.Prediction("p1"), PlacesBuilders.Prediction("p2"));
-        GivenPlace(PlacesBuilders.Place("p0"));
-        GivenPlace(PlacesBuilders.Place("p1"));
-        GivenPlace(PlacesBuilders.Place("p2"));
+        MockAutocomplete(PlacesBuilders.Prediction("p0"), PlacesBuilders.Prediction("p1"), PlacesBuilders.Prediction("p2"));
+        MockGetPlace(PlacesBuilders.Place("p0"));
+        MockGetPlace(PlacesBuilders.Place("p1"));
+        MockGetPlace(PlacesBuilders.Place("p2"));
         var service = CreateService();
 
         // Act
@@ -80,16 +80,16 @@ public sealed class GooglePlacesServiceTests
 
         // Assert
         Assert.Equal(2, results.Count);
-        await places.DidNotReceive().GetPlaceAsync("p2", Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _placesApi.DidNotReceive().GetPlaceAsync("p2", Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task SearchPlaces_SuggestionWithNullPrediction_IsSkipped()
     {
         // Arrange
-        GivenAutocomplete(PlacesBuilders.Prediction("p0"), null, PlacesBuilders.Prediction("p1"));
-        GivenPlace(PlacesBuilders.Place("p0"));
-        GivenPlace(PlacesBuilders.Place("p1"));
+        MockAutocomplete(PlacesBuilders.Prediction("p0"), null, PlacesBuilders.Prediction("p1"));
+        MockGetPlace(PlacesBuilders.Place("p0"));
+        MockGetPlace(PlacesBuilders.Place("p1"));
         var service = CreateService();
 
         // Act
@@ -104,9 +104,9 @@ public sealed class GooglePlacesServiceTests
     public async Task SearchPlaces_PlaceMissingLocation_IsSkipped()
     {
         // Arrange
-        GivenAutocomplete(PlacesBuilders.Prediction("p0"), PlacesBuilders.Prediction("p1"));
-        GivenPlace(PlacesBuilders.Place("p0", "Addr 0"));
-        GivenPlace(PlacesBuilders.Place("p1", longitude: null, latitude: null));
+        MockAutocomplete(PlacesBuilders.Prediction("p0"), PlacesBuilders.Prediction("p1"));
+        MockGetPlace(PlacesBuilders.Place("p0", "Addr 0"));
+        MockGetPlace(PlacesBuilders.Place("p1", longitude: null, latitude: null));
         var service = CreateService();
 
         // Act
@@ -121,9 +121,9 @@ public sealed class GooglePlacesServiceTests
     public async Task SearchPlaces_PlaceMissingShortFormattedAddress_IsSkipped()
     {
         // Arrange
-        GivenAutocomplete(PlacesBuilders.Prediction("p0"), PlacesBuilders.Prediction("p1"));
-        GivenPlace(PlacesBuilders.Place("p0", "Addr 0"));
-        GivenPlace(PlacesBuilders.Place("p1", shortAddress: null));
+        MockAutocomplete(PlacesBuilders.Prediction("p0"), PlacesBuilders.Prediction("p1"));
+        MockGetPlace(PlacesBuilders.Place("p0", "Addr 0"));
+        MockGetPlace(PlacesBuilders.Place("p1", shortAddress: null));
         var service = CreateService();
 
         // Act
@@ -138,8 +138,8 @@ public sealed class GooglePlacesServiceTests
     public async Task SearchPlaces_PlaceHasMovedPlaceId_UsesMovedPlaceIdAsResultPlaceId()
     {
         // Arrange
-        GivenAutocomplete(PlacesBuilders.Prediction("p0"));
-        GivenPlace(PlacesBuilders.Place("p0", movedPlaceId: "moved-1"));
+        MockAutocomplete(PlacesBuilders.Prediction("p0"));
+        MockGetPlace(PlacesBuilders.Place("p0", movedPlaceId: "moved-1"));
         var service = CreateService();
 
         // Act
@@ -154,8 +154,8 @@ public sealed class GooglePlacesServiceTests
     public async Task SearchPlaces_WithLocationBias_SendsCircleAroundPointToAutocomplete()
     {
         // Arrange
-        GivenAutocomplete(PlacesBuilders.Prediction("p0"));
-        GivenPlace(PlacesBuilders.Place("p0"));
+        MockAutocomplete(PlacesBuilders.Prediction("p0"));
+        MockGetPlace(PlacesBuilders.Place("p0"));
         var bias = GeoTestData.Point(10.4, 63.4);
         var service = CreateService();
 
@@ -164,7 +164,7 @@ public sealed class GooglePlacesServiceTests
             .CollectAsync();
 
         // Assert - Point Y/X map to latitude/longitude, fixed 25km radius.
-        await places.Received(1).AutocompleteAsync(
+        await _placesApi.Received(1).AutocompleteAsync(
             Arg.Is<AutocompleteRequest>(r => r.LocationBias != null
                 && r.LocationBias.Circle.Center.Latitude == 63.4
                 && r.LocationBias.Circle.Center.Longitude == 10.4
@@ -176,8 +176,8 @@ public sealed class GooglePlacesServiceTests
     public async Task SearchPlaces_WithoutLocationBias_SendsNoLocationBias()
     {
         // Arrange
-        GivenAutocomplete(PlacesBuilders.Prediction("p0"));
-        GivenPlace(PlacesBuilders.Place("p0"));
+        MockAutocomplete(PlacesBuilders.Prediction("p0"));
+        MockGetPlace(PlacesBuilders.Place("p0"));
         var service = CreateService();
 
         // Act
@@ -185,7 +185,7 @@ public sealed class GooglePlacesServiceTests
             .CollectAsync();
 
         // Assert
-        await places.Received(1).AutocompleteAsync(
+        await _placesApi.Received(1).AutocompleteAsync(
             Arg.Is<AutocompleteRequest>(r => r.LocationBias == null),
             Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
@@ -194,7 +194,7 @@ public sealed class GooglePlacesServiceTests
     public async Task SearchPlaces_AutocompleteReturnsNoPredictions_YieldsNothing()
     {
         // Arrange
-        GivenAutocomplete();
+        MockAutocomplete();
         var service = CreateService();
 
         // Act
@@ -208,7 +208,7 @@ public sealed class GooglePlacesServiceTests
     // Build the Refit error Google's client throws on a non-success status (for example a 429 quota hit).
     private static Task<ApiException> ApiError(HttpStatusCode status)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Post, "https://places.googleapis.com");
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://_placesApi.googleapis.com");
         using var response = new HttpResponseMessage(status);
         return ApiException.Create(request, HttpMethod.Post, response, new RefitSettings());
     }
@@ -218,7 +218,7 @@ public sealed class GooglePlacesServiceTests
     {
         // Arrange. Google rejects the autocomplete request because the daily quota is exhausted (429).
         var apiError = await ApiError(HttpStatusCode.TooManyRequests);
-        places.AutocompleteAsync(
+        _placesApi.AutocompleteAsync(
                 Arg.Any<AutocompleteRequest>(),
                 Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromException<AutocompleteResponse>(apiError));
@@ -235,9 +235,9 @@ public sealed class GooglePlacesServiceTests
     public async Task SearchPlaces_PlaceDetailsFailsWithStatus_ThrowsProblemDetailsExceptionCarryingThatStatus()
     {
         // Arrange - Autocomplete succeeds, but fetching the place details hits the quota limit.
-        GivenAutocomplete(PlacesBuilders.Prediction("p0"));
+        MockAutocomplete(PlacesBuilders.Prediction("p0"));
         var apiError = await ApiError(HttpStatusCode.TooManyRequests);
-        places.GetPlaceAsync("p0", Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+        _placesApi.GetPlaceAsync("p0", Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromException<PlaceDetailsResponse>(apiError));
         var service = CreateService();
 
@@ -245,5 +245,105 @@ public sealed class GooglePlacesServiceTests
         var thrown = await Assert.ThrowsAsync<ProblemDetailsException>(async () =>
             await service.SearchPlaces(new GooglePlacesSearchRequest { Query = "lade", Limit = null }).CollectAsync());
         Assert.Equal(429, thrown.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task FetchPlaceAsync_BlankPlaceId_ThrowsAndCallsNoApi(string placeId)
+    {
+        // Arrange
+        var service = CreateService();
+
+        // Act + Assert
+        await Assert.ThrowsAsync<ArgumentException>(async () => await service.FetchPlaceAsync(placeId));
+        await _placesApi.DidNotReceiveWithAnyArgs().GetPlaceAsync(default!, default!, default!, default!, default);
+    }
+
+    [Fact]
+    public async Task FetchPlaceAsync_PlaceExists_ReturnsThePlace()
+    {
+        // Arrange
+        MockGetPlace(PlacesBuilders.Place("p0", "Addr 0"));
+        var service = CreateService();
+
+        // Act
+        var result = await service.FetchPlaceAsync("p0");
+
+        // Assert
+        Assert.Equal("p0", result!.PlaceId);
+        Assert.Equal("Addr 0", result.ShortFormattedAddress);
+    }
+
+    [Fact]
+    public async Task FetchPlaceAsync_PlaceHasMovedPlaceId_ReturnsReplacementId()
+    {
+        // Arrange - A relocated place reports its replacement under movedPlaceId.
+        MockGetPlace(PlacesBuilders.Place("p0", movedPlaceId: "moved-1"));
+        var service = CreateService();
+
+        // Act
+        var result = await service.FetchPlaceAsync("p0");
+
+        // Assert
+        Assert.Equal("moved-1", result!.PlaceId);
+    }
+
+    [Fact]
+    public async Task FetchPlaceAsync_ObsoleteIdReturnsNotFound_ReturnsNull()
+    {
+        // Arrange - Google treats an obsolete place ID as NOT_FOUND (HTTP 404).
+        var apiError = await ApiError(HttpStatusCode.NotFound);
+        _placesApi.GetPlaceAsync("gone", Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<PlaceDetailsResponse>(apiError));
+        var service = CreateService();
+
+        // Act
+        var result = await service.FetchPlaceAsync("gone");
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task FetchPlaceAsync_PlaceMissingLocation_ReturnsNull()
+    {
+        // Arrange
+        MockGetPlace(PlacesBuilders.Place("p0", longitude: null, latitude: null));
+        var service = CreateService();
+
+        // Act
+        var result = await service.FetchPlaceAsync("p0");
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task FetchPlaceAsync_PlaceMissingShortFormattedAddress_ReturnsNull()
+    {
+        // Arrange
+        MockGetPlace(PlacesBuilders.Place("p0", shortAddress: null));
+        var service = CreateService();
+
+        // Act
+        var result = await service.FetchPlaceAsync("p0");
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task FetchPlaceAsync_FailsWithOtherStatus_ThrowsProblemDetailsExceptionCarryingThatStatus()
+    {
+        // Arrange - A non-404 failure (for example a server error) is a transient problem, not "gone".
+        var apiError = await ApiError(HttpStatusCode.InternalServerError);
+        _placesApi.GetPlaceAsync("p0", Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<PlaceDetailsResponse>(apiError));
+        var service = CreateService();
+
+        // Act + Assert
+        var thrown = await Assert.ThrowsAsync<ProblemDetailsException>(async () => await service.FetchPlaceAsync("p0"));
+        Assert.Equal(500, thrown.StatusCode);
     }
 }

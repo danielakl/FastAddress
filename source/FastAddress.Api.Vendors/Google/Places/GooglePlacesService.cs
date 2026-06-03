@@ -89,6 +89,23 @@ internal sealed class GooglePlacesService(IPlacesApi places) : IGooglePlacesServ
         }
     }
 
+    /// <inheritdoc/>
+    public async Task<GooglePlace?> FetchPlaceAsync(string placeId, CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(placeId);
+
+        try
+        {
+            return await FetchAsync(placeId, ct);
+        }
+        catch (ProblemDetailsException ex) when (ex.StatusCode == (int)HttpStatusCode.NotFound)
+        {
+            // NOT_FOUND means Google considers the ID obsolete (the place closed or its ID was
+            // reassigned), so the caller should treat it as gone rather than as a transient error.
+            return null;
+        }
+    }
+
     /// <summary>Wrap a bias point in a fixed-radius circle; returns <see langword="null"/> when absent so
     /// Google fallsback to its default IP-based bias.</summary>
     private static LocationBias? ToLocationBias(Point? point) =>
