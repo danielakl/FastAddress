@@ -1,7 +1,5 @@
 using System.Runtime.CompilerServices;
 
-using FastAddress.Api.Database;
-using FastAddress.Api.Database.Entities;
 using FastAddress.Api.Mapping;
 using FastAddress.Api.Models;
 using FastAddress.Api.Services;
@@ -9,7 +7,6 @@ using FastAddress.Sdk.Dto;
 using FastAddress.Sdk.Extensions;
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace FastAddress.Api.Controllers;
 
@@ -39,16 +36,5 @@ public sealed class AddressController : ControllerBase
         {
             yield return DtoMapper.ToStreetAddressDto(entry);
         }
-    }
-
-    [HttpGet]
-    public ConfiguredCancelableAsyncEnumerable<StreetAddressResult> TestGetAllAddresses(
-        [FromServices] FastAddressDbContext context,
-        CancellationToken ct = default)
-    {
-        return context.StreetAddressResults
-            .AsNoTracking()
-            .ToAsyncEnumerable()
-            .WithCancellation(ct);
     }
 }
