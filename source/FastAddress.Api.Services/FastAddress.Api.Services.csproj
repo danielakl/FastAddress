@@ -5,7 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <!-- BackgroundService + the DI/Logging abstractions the event bus uses (transitively pulls
+         DependencyInjection.Abstractions and Logging.Abstractions). -->
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
   </ItemGroup>
 
   <ItemGroup>
