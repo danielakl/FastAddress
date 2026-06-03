@@ -10,15 +10,16 @@ namespace FastAddress.Api.Database.Repositories;
 /// <inheritdoc/>
 public sealed class AddressQueryRepository(FastAddressDbContext context) : IAddressQueryRepository
 {
-    // Skip re-stamping a ledger row that was refreshed this recently (mirrors StreetAddressRepository).
+    // Skip re-stamping a ledger row that was refreshed this recently.
     private static readonly Duration RecentRefreshWindow = Duration.FromMinutes(5);
 
     /// <inheritdoc/>
-    public Task<StreetAddressQuery?> FindByQueryAsync(string query, CancellationToken ct = default)
+    public async Task<StreetAddressQuery?> FindByQueryAsync(string query, CancellationToken ct = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(query);
 
-        return FindByQueryAsync(context.StreetAddressQueries.AsNoTracking(), Normalize(query), ct);
+        var normalizedQuery = query.NormalizeSingleLine(toUpperCase: true);
+        return await FindByQueryAsync(context.StreetAddressQueries.AsNoTracking(), normalizedQuery, ct);
     }
 
     /// <inheritdoc/>
@@ -26,11 +27,11 @@ public sealed class AddressQueryRepository(FastAddressDbContext context) : IAddr
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(query);
 
-        var normalized = Normalize(query);
+        var normalizedQuery = query.NormalizeSingleLine(toUpperCase: true);
         var now = context.Clock.GetCurrentInstant();
 
         // Track the row (no AsNoTracking) so the stamp below updates it in place.
-        var entity = await FindByQueryAsync(context.StreetAddressQueries, normalized, ct);
+        var entity = await FindByQueryAsync(context.StreetAddressQueries, normalizedQuery, ct);
         if (entity is not null)
         {
             // Leave a row refreshed within the window untouched rather than bumping it again.
@@ -41,7 +42,7 @@ public sealed class AddressQueryRepository(FastAddressDbContext context) : IAddr
         }
         else
         {
-            entity = new StreetAddressQuery { Query = normalized };
+            entity = new StreetAddressQuery { Query = normalizedQuery };
             context.StreetAddressQueries.Add(entity);
         }
 
@@ -56,6 +57,4 @@ public sealed class AddressQueryRepository(FastAddressDbContext context) : IAddr
         string normalizedQuery,
         CancellationToken ct = default) =>
         source.SingleOrDefaultAsync(q => q.Query == normalizedQuery, ct);
-
-    private static string Normalize(string query) => query.NormalizeSingleLine(toUpperCase: true);
 }
