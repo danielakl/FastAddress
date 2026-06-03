@@ -1,4 +1,8 @@
-namespace FastAddress.Api.Events;
+using FastAddress.Api.Services.Messages.Events;
+
+using Microsoft.Extensions.DependencyInjection;
+
+namespace FastAddress.Api.Services.Messages;
 
 /// <summary>
 /// Closed-generic dispatch bridge for <typeparamref name="TEvent"/>. The single <c>(TEvent)</c> cast

@@ -1,6 +1,13 @@
 using System.Threading.Channels;
 
-namespace FastAddress.Api.Events;
+using FastAddress.Api.Services.Messages;
+using FastAddress.Api.Services.Messages.Events;
+
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+
+namespace FastAddress.Api.Services.BackgroundServices;
 
 /// <summary>
 /// Drains the domain-event channel on the application lifetime and dispatches each event to its

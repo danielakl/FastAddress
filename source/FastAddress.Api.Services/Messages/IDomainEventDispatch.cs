@@ -1,4 +1,6 @@
-namespace FastAddress.Api.Events;
+using FastAddress.Api.Services.Messages.Events;
+
+namespace FastAddress.Api.Services.Messages;
 
 /// <summary>
 /// Non-generic bridge that lets the dispatcher invoke a strongly-typed

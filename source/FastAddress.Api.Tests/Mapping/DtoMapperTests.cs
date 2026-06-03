@@ -1,5 +1,5 @@
 using FastAddress.Api.Mapping;
-using FastAddress.Api.Models;
+using FastAddress.Api.Services.Models;
 using FastAddress.TestUtilities;
 
 namespace FastAddress.Api.Tests.Mapping;

@@ -1,11 +1,11 @@
-using FastAddress.Api.Models;
+using FastAddress.Api.Services.Models;
 using FastAddress.Api.Vendors.Google.Places.Models;
 using FastAddress.Api.Vendors.Models;
 using FastAddress.TestUtilities;
 
 using NetTopologySuite.Geometries;
 
-namespace FastAddress.Api.Tests.Events;
+namespace FastAddress.Api.Tests.Messages;
 
 /// <summary>
 /// Shared builders for the event-system tests. Every meaningful field is a parameter with a default,

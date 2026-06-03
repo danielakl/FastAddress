@@ -1,11 +1,13 @@
+using FastAddress.Api.Database.Models;
 using FastAddress.Api.Database.Repositories;
-using FastAddress.Api.Mapping;
-using FastAddress.Api.Models;
+using FastAddress.Api.Services.Mapping;
+using FastAddress.Api.Services.Messages.Events;
+using FastAddress.Api.Services.Models;
 using FastAddress.Api.Vendors.Contracts;
 using FastAddress.Api.Vendors.Google.Places.Models;
 using FastAddress.Api.Vendors.Models;
 
-namespace FastAddress.Api.Events.Handlers;
+namespace FastAddress.Api.Services.Messages.Handlers;
 
 /// <summary>
 /// Warms the cache in the background: when a search returned fewer matches than requested, fetch the
@@ -33,7 +35,7 @@ internal sealed class AddressSearchEventHandler(
                 continue; // Drop non-address results (e.g. a city/locality) before storing.
             }
 
-            var upsert = StreetAddressFactory.From(result);
+            var upsert = ModelMapper.From(result);
             if (upsert is not null)
             {
                 upserts.Add(upsert);

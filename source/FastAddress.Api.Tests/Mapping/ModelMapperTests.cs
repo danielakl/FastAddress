@@ -1,4 +1,5 @@
 using FastAddress.Api.Mapping;
+using FastAddress.Api.Services.Mapping;
 using FastAddress.Api.Vendors.Google.Places.Models;
 using FastAddress.Api.Vendors.Models;
 using FastAddress.Sdk.Helpers;
@@ -7,7 +8,7 @@ using NetTopologySuite.Geometries;
 
 namespace FastAddress.Api.Tests.Mapping;
 
-public sealed class StreetAddressFactoryTests
+public sealed class ModelMapperTests
 {
     private const string Subpremise = "subpremise";
 
@@ -38,7 +39,7 @@ public sealed class StreetAddressFactoryTests
             Component("Norge", "NO", AddressComponentTypes.Country));
 
         // Act
-        var upsert = StreetAddressFactory.From(result);
+        var upsert = ModelMapper.From(result);
 
         // Assert
         Assert.NotNull(upsert);
@@ -60,7 +61,7 @@ public sealed class StreetAddressFactoryTests
             Component("H0202", "H0202", Subpremise));
 
         // Act
-        var upsert = StreetAddressFactory.From(result);
+        var upsert = ModelMapper.From(result);
 
         // Assert
         Assert.NotNull(upsert);
@@ -75,7 +76,7 @@ public sealed class StreetAddressFactoryTests
         var result = Result(Component("7041", "7041", AddressComponentTypes.PostalCode));
 
         // Act
-        var upsert = StreetAddressFactory.From(result);
+        var upsert = ModelMapper.From(result);
 
         // Assert
         Assert.Null(upsert);
@@ -92,7 +93,7 @@ public sealed class StreetAddressFactoryTests
             Component("Stjørdal", "Stjørdal", AddressComponentTypes.PostalTown));
 
         // Act
-        var upsert = StreetAddressFactory.From(result);
+        var upsert = ModelMapper.From(result);
 
         // Assert
         Assert.NotNull(upsert);
@@ -111,7 +112,7 @@ public sealed class StreetAddressFactoryTests
             Component("Some Building", "Some Building", AddressComponentTypes.Premise));
 
         // Act
-        var upsert = StreetAddressFactory.From(result);
+        var upsert = ModelMapper.From(result);
 
         // Assert
         Assert.NotNull(upsert);
@@ -128,7 +129,7 @@ public sealed class StreetAddressFactoryTests
             Component("Trondheim", "Trondheim", AddressComponentTypes.Locality));
 
         // Act
-        var upsert = StreetAddressFactory.From(result);
+        var upsert = ModelMapper.From(result);
 
         // Assert
         Assert.NotNull(upsert);
@@ -144,7 +145,7 @@ public sealed class StreetAddressFactoryTests
             Component("77", "77", AddressComponentTypes.StreetNumber));
 
         // Act
-        var upsert = StreetAddressFactory.From(result);
+        var upsert = ModelMapper.From(result);
 
         // Assert
         Assert.NotNull(upsert);
@@ -160,7 +161,7 @@ public sealed class StreetAddressFactoryTests
             Component("77", "77", AddressComponentTypes.StreetNumber));
 
         // Act
-        var upsert = StreetAddressFactory.From(result);
+        var upsert = ModelMapper.From(result);
 
         // Assert
         Assert.NotNull(upsert);

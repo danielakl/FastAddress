@@ -1,8 +1,10 @@
 using FastAddress.Api.Database.Entities;
+using FastAddress.Api.Database.Models;
 using FastAddress.Api.Database.Repositories;
-using FastAddress.Api.Events;
-using FastAddress.Api.Models;
 using FastAddress.Api.Services;
+using FastAddress.Api.Services.Messages;
+using FastAddress.Api.Services.Messages.Events;
+using FastAddress.Api.Services.Models;
 using FastAddress.TestUtilities;
 
 using NetTopologySuite.Geometries;
@@ -33,7 +35,7 @@ public sealed class StreetAddressSearchServiceTests
         string? postalTown = null) =>
         new()
         {
-            StreetAddress = new StreetAddress
+            StreetAddress = new StreetAddressResult
             {
                 GooglePlaceId = placeId,
                 StreetLine = streetLine,

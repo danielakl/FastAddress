@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FastAddress.Api.Database\FastAddress.Api.Database.csproj" />
+    <ProjectReference Include="..\FastAddress.Api.Vendors\FastAddress.Api.Vendors.csproj" />
+    <ProjectReference Include="..\FastAddress.Sdk\FastAddress.Sdk.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="FastAddress.Api.Tests" />
+  </ItemGroup>
+
+</Project>

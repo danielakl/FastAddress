@@ -1,13 +1,15 @@
 using System.Runtime.CompilerServices;
 
+using FastAddress.Api.Database.Models;
 using FastAddress.Api.Database.Repositories;
-using FastAddress.Api.Events;
-using FastAddress.Api.Models;
+using FastAddress.Api.Services.Messages;
+using FastAddress.Api.Services.Messages.Events;
+using FastAddress.Api.Services.Models;
 
 namespace FastAddress.Api.Services;
 
 /// <inheritdoc/>
-internal sealed class StreetAddressSearchService(
+public sealed class StreetAddressSearchService(
     IStreetAddressRepository addressRepo,
     IDomainEventPublisher events) : IStreetAddressSearchService
 {

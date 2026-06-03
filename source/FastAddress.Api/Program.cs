@@ -1,8 +1,8 @@
 using FastAddress.Api.Database.Extensions;
 using FastAddress.Api.Database.Options;
 using FastAddress.Api.Database.Repositories;
-using FastAddress.Api.Messages.Extensions;
 using FastAddress.Api.Services;
+using FastAddress.Api.Services.Messages.Extensions;
 using FastAddress.Api.Vendors.Extensions;
 using FastAddress.Sdk.Serialization;
 

@@ -1,8 +1,8 @@
 using System.Runtime.CompilerServices;
 
 using FastAddress.Api.Mapping;
-using FastAddress.Api.Models;
 using FastAddress.Api.Services;
+using FastAddress.Api.Services.Models;
 using FastAddress.Sdk.Dto;
 using FastAddress.Sdk.Extensions;
 

@@ -1,6 +1,6 @@
 using FastAddress.Api.Controllers;
-using FastAddress.Api.Models;
 using FastAddress.Api.Services;
+using FastAddress.Api.Services.Models;
 using FastAddress.Sdk.Dto;
 using FastAddress.TestUtilities;
 

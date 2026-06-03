@@ -1,4 +1,4 @@
-namespace FastAddress.Api.Events;
+namespace FastAddress.Api.Services.Messages.Events;
 
 /// <summary>
 /// Marker for a local domain event carried through the in-process event bus.

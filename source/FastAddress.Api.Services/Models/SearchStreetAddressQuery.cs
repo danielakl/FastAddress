@@ -1,9 +1,9 @@
 using NetTopologySuite.Geometries;
 
-namespace FastAddress.Api.Models;
+namespace FastAddress.Api.Services.Models;
 
 /// <summary>
-/// Internal steet address search query.
+/// Internal street address search query.
 /// </summary>
 public sealed record SearchStreetAddressQuery
 {

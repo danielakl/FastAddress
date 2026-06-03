@@ -1,8 +1,11 @@
 using System.Threading.Channels;
 
-using FastAddress.Api.Events.Handlers;
+using FastAddress.Api.Services.Messages.Events;
+using FastAddress.Api.Services.Messages.Handlers;
 
-namespace FastAddress.Api.Events.Extensions;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace FastAddress.Api.Services.Messages.Extensions;
 
 /// <summary>
 /// DI registration for the local in-process domain-event bus.
@@ -23,7 +26,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton(_ => Channel.CreateBounded<IDomainEvent>(
             new BoundedChannelOptions(ChannelCapacity) { FullMode = BoundedChannelFullMode.Wait }));
         services.AddSingleton<IDomainEventPublisher, ChannelDomainEventPublisher>();
-        services.AddHostedService<EventDispatcherBackgroundService>();
+        services.AddHostedService<BackgroundServices.EventDispatcherBackgroundService>();
 
         // One line per event type: scoped handler + keyed dispatch bridge resolved by runtime type.
         services.AddScoped<IDomainEventHandler<AddressSearchPerformed>, AddressSearchEventHandler>();

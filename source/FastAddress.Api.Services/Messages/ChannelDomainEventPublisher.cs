@@ -1,6 +1,10 @@
 using System.Threading.Channels;
 
-namespace FastAddress.Api.Events;
+using FastAddress.Api.Services.Messages.Events;
+
+using Microsoft.Extensions.Logging;
+
+namespace FastAddress.Api.Services.Messages;
 
 /// <summary>
 /// Publishes events onto a bounded in-process channel. Non-blocking: a full channel drops the event

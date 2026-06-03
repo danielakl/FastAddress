@@ -1,15 +1,15 @@
-using FastAddress.Api.Models;
+using FastAddress.Api.Database.Models;
 using FastAddress.Api.Vendors.Google.Places.Models;
 using FastAddress.Api.Vendors.Models;
 using FastAddress.Sdk.Extensions;
 using FastAddress.Sdk.Helpers;
 
-namespace FastAddress.Api.Mapping;
+namespace FastAddress.Api.Services.Mapping;
 
 /// <summary>
 /// Builds a persistable <see cref="StreetAddressUpsert"/> from a Google <see cref="AddressSearchResult"/>.
 /// </summary>
-internal static class StreetAddressFactory
+internal static class ModelMapper
 {
     /// <summary>
     /// Project a Google result onto an upsert payload, returning <see langword="null"/> when no street

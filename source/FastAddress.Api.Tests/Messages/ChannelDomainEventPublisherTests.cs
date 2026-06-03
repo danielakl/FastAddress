@@ -1,10 +1,12 @@
 using System.Threading.Channels;
 
-using FastAddress.Api.Events;
+using FastAddress.Api.Services.Messages.Events;
 
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace FastAddress.Api.Tests.Events;
+using ChannelDomainEventPublisher = FastAddress.Api.Services.Messages.ChannelDomainEventPublisher;
+
+namespace FastAddress.Api.Tests.Messages;
 
 public sealed class ChannelDomainEventPublisherTests
 {

@@ -1,6 +1,6 @@
-using FastAddress.Api.Models;
+using FastAddress.Api.Services.Models;
 
-namespace FastAddress.Api.Events;
+namespace FastAddress.Api.Services.Messages.Events;
 
 /// <summary>
 /// Raised after a street-address search has been served from the database, carrying the original

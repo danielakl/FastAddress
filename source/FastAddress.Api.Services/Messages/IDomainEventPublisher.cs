@@ -1,4 +1,6 @@
-namespace FastAddress.Api.Events;
+using FastAddress.Api.Services.Messages.Events;
+
+namespace FastAddress.Api.Services.Messages;
 
 /// <summary>
 /// Publishes domain events onto the local event bus without blocking the caller.

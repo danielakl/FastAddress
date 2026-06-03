@@ -1,10 +1,11 @@
-using FastAddress.Api.Events;
+using FastAddress.Api.Services.Messages;
+using FastAddress.Api.Services.Messages.Events;
 
 using Microsoft.Extensions.DependencyInjection;
 
 using NSubstitute;
 
-namespace FastAddress.Api.Tests.Events;
+namespace FastAddress.Api.Tests.Messages;
 
 public sealed class DomainEventDispatchTests
 {

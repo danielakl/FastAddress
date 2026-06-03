@@ -1,14 +1,14 @@
+using FastAddress.Api.Database.Models;
 using FastAddress.Api.Database.Repositories;
-using FastAddress.Api.Events;
-using FastAddress.Api.Events.Handlers;
-using FastAddress.Api.Models;
+using FastAddress.Api.Services.Messages.Events;
+using FastAddress.Api.Services.Messages.Handlers;
 using FastAddress.Api.Vendors.Contracts;
 using FastAddress.Api.Vendors.Models;
 using FastAddress.TestUtilities;
 
 using NSubstitute;
 
-namespace FastAddress.Api.Tests.Events.Handlers;
+namespace FastAddress.Api.Tests.Messages.Handlers;
 
 public sealed class AddressSearchEventHandlerTests
 {

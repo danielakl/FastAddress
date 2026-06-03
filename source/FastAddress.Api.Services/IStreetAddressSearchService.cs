@@ -1,4 +1,4 @@
-using FastAddress.Api.Models;
+using FastAddress.Api.Services.Models;
 
 namespace FastAddress.Api.Services;
 

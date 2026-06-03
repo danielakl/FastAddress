@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-using FastAddress.Api.Models;
+using FastAddress.Api.Services.Models;
 using FastAddress.Sdk.Dto;
 
 namespace FastAddress.Api.Mapping;
