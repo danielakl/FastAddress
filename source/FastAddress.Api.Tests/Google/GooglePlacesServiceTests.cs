@@ -1,9 +1,14 @@
+using System.Net;
+
 using FastAddress.Api.Vendors.Google.Places;
 using FastAddress.Api.Vendors.Google.Places.Models;
 using FastAddress.Api.Vendors.Models;
+using FastAddress.Sdk.Exceptions;
 using FastAddress.TestUtilities;
 
 using NSubstitute;
+
+using Refit;
 
 namespace FastAddress.Api.Tests.Google;
 
@@ -218,5 +223,47 @@ public sealed class GooglePlacesServiceTests
 
         // Assert
         Assert.Empty(results);
+    }
+
+    // Build the Refit error Google's client throws on a non-success status (for example a 429 quota hit).
+    private static Task<ApiException> ApiError(HttpStatusCode status)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://places.googleapis.com");
+        using var response = new HttpResponseMessage(status);
+        return ApiException.Create(request, HttpMethod.Post, response, new RefitSettings());
+    }
+
+    [Fact]
+    public async Task Search_AutocompleteFailsWithStatus_ThrowsProblemDetailsExceptionCarryingThatStatus()
+    {
+        // Arrange. Google rejects the autocomplete request because the daily quota is exhausted (429).
+        var apiError = await ApiError(HttpStatusCode.TooManyRequests);
+        places.AutocompleteAsync(
+                Arg.Any<AutocompleteRequest>(),
+                Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<AutocompleteResponse>(apiError));
+        var service = CreateService();
+
+        // Act + Assert. The transport error is translated to a problem-details exception with the status.
+        var thrown = await Assert.ThrowsAsync<ProblemDetailsException>(async () =>
+            await service.Search(new AddressSearchRequest { Query = "lade", Limit = null }).CollectAsync());
+        Assert.Equal(429, thrown.StatusCode);
+        Assert.Same(apiError, thrown.InnerException);
+    }
+
+    [Fact]
+    public async Task Search_PlaceDetailsFailsWithStatus_ThrowsProblemDetailsExceptionCarryingThatStatus()
+    {
+        // Arrange. Autocomplete succeeds, but fetching the place details hits the quota limit.
+        GivenAutocomplete(PlacesBuilders.Prediction("p0"));
+        var apiError = await ApiError(HttpStatusCode.TooManyRequests);
+        places.GetPlaceAsync("p0", Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<PlaceDetailsResponse>(apiError));
+        var service = CreateService();
+
+        // Act + Assert
+        var thrown = await Assert.ThrowsAsync<ProblemDetailsException>(async () =>
+            await service.Search(new AddressSearchRequest { Query = "lade", Limit = null }).CollectAsync());
+        Assert.Equal(429, thrown.StatusCode);
     }
 }

@@ -1,11 +1,15 @@
+using System.Net;
 using System.Runtime.CompilerServices;
 
 using FastAddress.Api.Vendors.Contracts;
 using FastAddress.Api.Vendors.Google.Places.Models;
 using FastAddress.Api.Vendors.Models;
+using FastAddress.Sdk.Exceptions;
 using FastAddress.Sdk.Helpers;
 
 using NetTopologySuite.Geometries;
+
+using Refit;
 
 namespace FastAddress.Api.Vendors.Google.Places;
 
@@ -32,18 +36,26 @@ internal sealed class GooglePlacesService(IPlacesApi places) : IGooglePlacesServ
             yield break;
         }
 
-        var autocomplete = await places.AutocompleteAsync(
-            new AutocompleteRequest
-            {
-                IncludedPrimaryTypes = [..PlaceTypes.StreetAddressTypes],
-                IncludedRegionCodes = [RegionCode],
-                Input = request.Query,
-                LocationBias = ToLocationBias(request.LocationBias),
-            },
-            PlaceAutoCompleteFields,
-            LanguageCode,
-            RegionCode,
-            ct);
+        AutocompleteResponse autocomplete;
+        try
+        {
+            autocomplete = await places.AutocompleteAsync(
+                new AutocompleteRequest
+                {
+                    IncludedPrimaryTypes = [..PlaceTypes.StreetAddressTypes],
+                    IncludedRegionCodes = [RegionCode],
+                    Input = request.Query,
+                    LocationBias = ToLocationBias(request.LocationBias),
+                },
+                PlaceAutoCompleteFields,
+                LanguageCode,
+                RegionCode,
+                ct);
+        }
+        catch (ApiException ex)
+        {
+            throw ToProblemDetailsException(ex);
+        }
 
         if (autocomplete.Suggestions is null)
         {
@@ -91,14 +103,31 @@ internal sealed class GooglePlacesService(IPlacesApi places) : IGooglePlacesServ
                 },
             };
 
+    /// <summary>Translate a Refit transport error into a transport-neutral <see cref="ProblemDetailsException"/>
+    /// carrying the failing HTTP status, so the API host can surface it as a problem-details response.</summary>
+    private static ProblemDetailsException ToProblemDetailsException(ApiException ex) =>
+        new(
+            statusCode: (int)ex.StatusCode,
+            title: "Address search failed",
+            detail: ex.ReasonPhrase,
+            innerException: ex);
+
     private async Task<AddressSearchResult?> FetchAsync(string placeId, int orderScore, CancellationToken ct)
     {
-        var details = await places.GetPlaceAsync(
-            placeId,
-            PlaceDetailsFields,
-            LanguageCode,
-            RegionCode,
-            ct);
+        PlaceDetailsResponse details;
+        try
+        {
+            details = await places.GetPlaceAsync(
+                placeId,
+                PlaceDetailsFields,
+                LanguageCode,
+                RegionCode,
+                ct);
+        }
+        catch (ApiException ex)
+        {
+            throw ToProblemDetailsException(ex);
+        }
 
         if (details.Location is null || details.ShortFormattedAddress is null)
         {
