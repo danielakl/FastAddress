@@ -2,7 +2,7 @@
 // previous in-flight request. Talks to the same-origin proxy at /api/addresses/search.
 
 const SEARCH_URL = "/api/addresses/search";
-const RESULT_LIMIT = 25;
+const RESULT_LIMIT = 5;
 
 let controller = null;
 
