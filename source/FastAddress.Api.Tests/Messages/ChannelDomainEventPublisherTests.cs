@@ -23,7 +23,7 @@ public sealed class ChannelDomainEventPublisherTests
         // Arrange
         var channel = BoundedChannel(capacity: 1);
         var publisher = PublisherOver(channel);
-        var @event = new AddressSearchPerformed(EventTestBuilders.Query(), MatchCount: 0);
+        var @event = EventTestBuilders.Retrieved();
 
         // Act
         var published = publisher.TryPublish(@event);
@@ -37,13 +37,13 @@ public sealed class ChannelDomainEventPublisherTests
     [Fact]
     public void TryPublish_ChannelFull_DropsAndReturnsFalse()
     {
-        // Arrange — fill the only slot so the next write has nowhere to go.
+        // Arrange - Fill the only slot so the next write has nowhere to go.
         var channel = BoundedChannel(capacity: 1);
         var publisher = PublisherOver(channel);
-        publisher.TryPublish(new AddressSearchPerformed(EventTestBuilders.Query(), MatchCount: 0));
+        publisher.TryPublish(EventTestBuilders.Retrieved());
 
         // Act
-        var published = publisher.TryPublish(new AddressSearchPerformed(EventTestBuilders.Query(), MatchCount: 0));
+        var published = publisher.TryPublish(EventTestBuilders.Retrieved());
 
         // Assert
         Assert.False(published);

@@ -1,3 +1,5 @@
+using FastAddress.Api.Database.Models;
+using FastAddress.Api.Services.Messages.Events;
 using FastAddress.Api.Services.Models;
 using FastAddress.Api.Vendors.Google.Places.Models;
 using FastAddress.Api.Vendors.Models;
@@ -37,4 +39,26 @@ internal static class EventTestBuilders
                 new AddressComponent { LongText = streetNumber, ShortText = streetNumber, Types = [AddressComponentTypes.StreetNumber] },
             ],
         };
+
+    public static StreetAddressUpsert Upsert(
+        string placeId = "place-x",
+        string streetLine = "Lade allé 77",
+        string? postalCode = null,
+        string? postalTown = null,
+        string? country = null) =>
+        new()
+        {
+            GooglePlaceId = placeId,
+            StreetLine = streetLine,
+            PostalCode = postalCode,
+            PostalTown = postalTown,
+            Country = country,
+            SearchText = streetLine.ToUpperInvariant(),
+            Location = GeoTestData.Point(10.0, 63.0),
+        };
+
+    public static GoogleResultsRetrieved Retrieved(
+        string normalizedQuery = "LADE ALLE 77",
+        params StreetAddressUpsert[] results) =>
+        new(normalizedQuery, results);
 }
