@@ -54,7 +54,7 @@ public sealed class AddressResultRepository(
                 TextScore = EF.Functions.TrigramsSimilarity(sa.SearchText!, normalized),
                 PrefixScore = normalized.Length > sa.SearchText!.Length ? 0 : (double)normalized.Length / sa.SearchText!.Length,
                 IsPrefixMatch = EF.Functions.ILike(sa.SearchText!, prefixPattern),
-                DistanceScore = locationBias == null || sa.Location == null ? 0 :  sa.Location.Distance(locationBias) / options.BiasScaleMeters,
+                DistanceScore = locationBias == null || sa.Location == null ? 0 : sa.Location.Distance(locationBias) / options.BiasScaleMeters,
             })
             .Where(c => c.TextScore >= minSimilarity || c.IsPrefixMatch)
             .OrderByDescending(c => c.TextScore)

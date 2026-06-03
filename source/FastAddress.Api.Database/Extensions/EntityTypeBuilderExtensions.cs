@@ -22,5 +22,5 @@ public static class EntityTypeBuilderExtensions
         builder.Property(e => e.Modified).HasDefaultValueNow();
     }
 
-    
+
 }

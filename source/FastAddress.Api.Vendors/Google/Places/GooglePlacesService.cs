@@ -42,7 +42,7 @@ internal sealed class GooglePlacesService(IPlacesApi places) : IGooglePlacesServ
             autocomplete = await places.AutocompleteAsync(
                 new AutocompleteRequest
                 {
-                    IncludedPrimaryTypes = [..PlaceTypes.StreetAddressTypes],
+                    IncludedPrimaryTypes = [.. PlaceTypes.StreetAddressTypes],
                     IncludedRegionCodes = [RegionCode],
                     Input = request.Query,
                     LocationBias = ToLocationBias(request.LocationBias),

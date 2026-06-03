@@ -17,7 +17,7 @@ public static class SpatialHelper
     /// <a href="https://en.wikipedia.org/wiki/World_Geodetic_System">World Geodetic System</a>
     /// </summary>
     public const int Srid = 4326;
-    
+
     /// <summary>
     /// The precision model of the <see cref="Coordinate"/>s in a <see cref="Geometry"/> used. Model is using a
     /// <see cref="PrecisionModels.Fixed"/> number of decimal places of 5. This gives the model precision of down to

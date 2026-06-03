@@ -9,7 +9,7 @@ namespace FastAddress.Sdk.Extensions;
 /// </summary>
 public static class StringExtensions
 {
-        /// <summary>
+    /// <summary>
     /// Normalize a string to a single line string.
     /// <list type="bullet">
     ///   <item>Leading and trailing white space are removed</item>
@@ -71,7 +71,7 @@ public static class StringExtensions
 
         return str;
     }
-    
+
     /// <summary>
     /// Reduce sequences of white space to a single white space.
     /// </summary>

@@ -9,7 +9,7 @@ public sealed record DatabaseOptions
     /// <summary>Connection string used to connect to the database.</summary>
     /// <remarks>Will contain sensitive information such as username and password.</remarks>
     public required string ConnectionString { get; init; }
-    
+
     /// <summary>
     /// Whether to enable detailed errors when handling of data value exceptions that occur during processing of store query results.
     /// Such errors most often occur due to misconfiguration of entity properties. E.g. If a property is configured
@@ -19,7 +19,7 @@ public sealed record DatabaseOptions
     /// details of the specific entity property that generated the error.
     /// </summary>
     public bool EnableDetailedErrors { get; init; }
-    
+
     /// <summary>
     /// Whether to enable application data to be included in exception messages, logging, etc.
     /// This can include the values assigned to properties of your entity instances, parameter values for
@@ -28,5 +28,5 @@ public sealed record DatabaseOptions
     /// the sensitivity of this data.
     /// </summary>
     public bool EnableSensitiveDataLogging { get; init; }
-    
+
 };

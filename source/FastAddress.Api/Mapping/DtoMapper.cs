@@ -13,7 +13,7 @@ internal static class DtoMapper
     /// <summary>
     /// Project a <see cref="StreetAddressSearchEntry"/> onto the <see cref="StreetAddressDto"/>.
     /// </summary>
-    [return:NotNullIfNotNull(nameof(entry))]
+    [return: NotNullIfNotNull(nameof(entry))]
     public static StreetAddressDto? ToStreetAddressDto(StreetAddressSearchEntry? entry)
     {
         if (entry is null)
