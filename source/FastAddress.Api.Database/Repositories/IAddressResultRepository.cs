@@ -7,7 +7,7 @@ namespace FastAddress.Api.Database.Repositories;
 /// <summary>
 /// Repository for managing <see cref="StreetAddress"/> entities.
 /// </summary>
-public interface IStreetAddressRepository
+public interface IAddressResultRepository
 {
     /// <summary>
     /// Fuzzy-search street addresses by trigram similarity, biased toward

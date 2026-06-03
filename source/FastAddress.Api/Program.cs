@@ -29,10 +29,12 @@ services.AddGoogleApiContract(configuration);
 
 // Add services.
 services.AddSingleton<IClock>(SystemClock.Instance);
-services.AddFastAddressDbContext(configuration);
-services.AddScoped<IAddressResultRepository, StreetAddressRepository>();
+
 services.AddScoped<IAddressQueryRepository, AddressQueryRepository>();
+services.AddScoped<IAddressResultRepository, AddressResultRepository>();
 services.AddScoped<IStreetAddressSearchService, StreetAddressSearchService>();
+
+services.AddFastAddressDbContext(configuration);
 services.AddDomainEventSystem();
 
 services.AddHealthChecks();

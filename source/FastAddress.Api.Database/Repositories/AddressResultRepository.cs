@@ -14,9 +14,9 @@ using NodaTime;
 namespace FastAddress.Api.Database.Repositories;
 
 /// <inheritdoc/>
-public sealed class StreetAddressRepository(
+public sealed class AddressResultRepository(
     FastAddressDbContext context,
-    IOptionsMonitor<AddressSearchOptions> optionsMonitor) : IStreetAddressRepository
+    IOptionsMonitor<AddressSearchOptions> optionsMonitor) : IAddressResultRepository
 {
     // Skip re-writing a row that was refreshed this recently.
     private static readonly Duration RecentRefreshWindow = Duration.FromMinutes(5);
@@ -35,9 +35,6 @@ public sealed class StreetAddressRepository(
 
         var options = optionsMonitor.CurrentValue;
         var minSimilarity = options.MinSimilarity;
-        var cutoff = options.MaxReuseAge is { } maxAge
-            ? context.Clock.GetCurrentInstant() - maxAge
-            : (Instant?)null;
 
         // Two filter gates: GIN trigram filter for fuzzy matches, and an ILike prefix match
         // so exact-start hits surface before they reach the similarity threshold.
@@ -51,7 +48,6 @@ public sealed class StreetAddressRepository(
 
         return context.StreetAddressResults
             .AsNoTracking()
-            .Where(sa => cutoff == null || sa.LastRefreshed >= cutoff)
             .Select(sa => new Candidate
             {
                 Entity = sa,
