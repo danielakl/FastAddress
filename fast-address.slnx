@@ -7,8 +7,9 @@
     <File Path="Directory.Build.props" />
     <File Path="Directory.Build.targets" />
     <File Path="Directory.Packages.props" />
+    <File Path="compose-deps.yaml" />
+    <File Path="compose-services.yaml" />
     <File Path="coverlet.runsettings" />
-    <File Path="docker-compose.yaml" />
     <File Path="dotnet-tools.json" />
     <File Path="fast-address.slnx" />
     <File Path="global.json" />

@@ -1,28 +1,4 @@
 ﻿services:
-  fastaddress.api:
-    container_name: api
-    image: fastaddress.api:dev
-    build:
-      context: .
-      dockerfile: source/FastAddress.Api/Dockerfile
-    environment:
-      - ASPNETCORE_URLS=http://+:80
-    ports:
-      - "5000:80"
-      - "5001:443"
-
-  fastaddress.web:
-    container_name: web
-    image: fastaddress.web:dev
-    build:
-      context: .
-      dockerfile: source/FastAddress.Web/Dockerfile
-    environment:
-      - ASPNETCORE_URLS=http://+:80
-    ports:
-      - "3000:80"
-      - "3001:443"
-
   fastaddress.db:
     container_name: database
     image: postgis/postgis:18-3.6-alpine
