@@ -1,8 +1,5 @@
--- Migration table data
-INSERT INTO address._migration_history ("MigrationId", "ProductVersion") VALUES ('20260601102934_InitialCreate', '10.0.8');
-INSERT INTO address._migration_history ("MigrationId", "ProductVersion") VALUES ('20260603093503_RenameStreetAddressesTable', '10.0.8');
-INSERT INTO address._migration_history ("MigrationId", "ProductVersion") VALUES ('20260603123426_AddStreetAddressQuery', '10.0.8');
-INSERT INTO address._migration_history ("MigrationId", "ProductVersion") VALUES ('20260603175849_AddLastRefreshedIndex', '10.0.8');
+-- Make sure the database has been migrated before seeding data
+-- dotnet ef database update --startup-project source/FastAddress.Api/FastAddress.Api.csproj --project source/FastAddress.Api.Database/FastAddress.Api.Database.csproj
 
 -- Search query data
 INSERT INTO address.street_address_queries ("Id", "Added", "Modified", "Query", "LastRefreshed") VALUES (12, '2026-06-03 12:51:11.882716 +00:00', '2026-06-03 12:51:11.882716 +00:00', 'L', '2026-06-03 12:51:11.879764 +00:00');
